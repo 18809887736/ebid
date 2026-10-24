@@ -38,6 +38,8 @@
 
 ## E. 自建测试 WEB（§4.5）专项复核
 
+（该部分规划现已独立为 [ebid-v2-mockweb.md](ebid-v2-mockweb.md)，下列修订已写入新文档）
+
 骨架总体扎实：`restart: "no"` 引号写法正确、端口显式绑 127.0.0.1、Hyper-V 端口保留、.wslconfig 内存上限、Docker 许可、watch 替代 bind mount、裸跑 Flask 后备、MOCK_TODAY 冻结日期、「mock 全绿≠真站可用」的边界声明——常见坑均已自知。以下是复核发现的 6 个问题：
 
 | # | 位置 | 问题 | 建议修法 | 状态 |
