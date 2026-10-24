@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>国家能源集团E招 - {{ catname }}</title></head>
+<body>
+<div class="ewb-info-main">
+  <div class="ewb-info-head"><h2>{{ catname }}</h2></div>
+  <ul class="ewb-info-items">
+    {% for r in rows %}
+    <li class="ewb-info-item">
+      <a href="/guoneng/bidweb/001/{{ r.cat }}/{{ r.n }}/{{ r.ymd }}/{{ r.slug }}.html" title="{{ r.title }}" target="_blank">{{ r.title }}</a>
+      <span class="ewb-info-date">{{ r.date_s }}</span>
+    </li>
+    {% else %}
+    <li class="ewb-info-item"><span>暂无数据</span></li>
+    {% endfor %}
+  </ul>
+  <div class="ewb-page">
+    <a href="/guoneng/bidweb/001/{{ cat }}/moreinfo.html">首页</a>
+    <a href="/guoneng/bidweb/001/{{ cat }}/moreinfo.html">1</a>
+    <a href="/guoneng/bidweb/001/{{ cat }}/2.html">2</a>
+    <a href="/guoneng/bidweb/001/{{ cat }}/3.html">3</a>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,35 @@
+services:
+  mock-web:
+    build: ./mockweb
+    restart: "no" # 不随 Docker 自启，只在测试时手动起
+    ports:
+      - "127.0.0.1:${MOCK_PORT:-18080}:8080" # 必须显式写 127.0.0.1
+    environment:
+      MOCK_TODAY: "${MOCK_TODAY:-}" # 空=真实今天；填 YYYY-MM-DD 冻结日期
+      MOCK_ADMIN_TOKEN: "${MOCK_ADMIN_TOKEN:-dev-token}"
+      MOCK_TIMEOUT_SECONDS: "${MOCK_TIMEOUT_SECONDS:-120}" # timeout 场景挂起秒数，本机调试可调小
+    volumes:
+      - ./tests/fixtures:/fixtures:ro # 真站快照，只读
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./mockweb
+          target: /app
+        - action: rebuild
+          path: ./mockweb/requirements.txt
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8080/__health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:v1.21
+    profiles: ["mail"] # docker compose --profile mail up -d 按需启用
+    restart: "no"
+    ports:
+      - "127.0.0.1:${MOCK_SMTP_PORT:-18026}:1025" # SMTP：E2E 把通知邮件指向这里
+      - "127.0.0.1:${MOCK_MAIL_UI_PORT:-18025}:8025" # 收件 UI：http://127.0.0.1:18025
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: "1"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "1"

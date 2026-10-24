@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>{{ e.title }}</title></head>
+<body>
+<div class="ewb-detail">
+  <h1>{{ e.title }}</h1>
+  <div class="ewb-meta">
+    <span>公告类型：{{ catname }}</span>
+    <span>发布时间：{{ date_s }}</span>
+    {% if deadline_s %}<span>报名截止时间：{{ deadline_s }}</span>{% endif %}
+  </div>
+  <div class="ewb-content">{{ e.body | safe }}</div>
+</div>
+</body>
+</html>

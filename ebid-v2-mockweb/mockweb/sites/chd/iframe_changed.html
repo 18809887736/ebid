@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>公告列表</title></head>
+<body>
+<!-- layout_changed: 改版后的 DOM —— 无 table、无 a[onclick]，单元格结构全变 -->
+<div class="feed-list" id="feed">
+</div>
+<script>
+var rows = {{ rows_json | safe }};
+document.addEventListener("DOMContentLoaded", function () {
+  var box = document.getElementById("feed");
+  rows.forEach(function (r) {
+    var d = document.createElement("div");
+    d.className = "feed-item";
+    d.innerHTML = "<b class=\"feed-title\">" + r.title + "</b>" +
+      "<i class=\"feed-date\">" + r.date + "</i>" +
+      "<span class=\"feed-flag\">" + r.type + "</span>";
+    box.appendChild(d);
+  });
+});
+</script>
+</body>
+</html>
