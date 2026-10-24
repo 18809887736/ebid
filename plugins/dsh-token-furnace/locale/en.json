@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Token Furnace",
+    "description": "Spends model tokens on demand through real model calls, and reports exactly how many were spent."
+  }
+}

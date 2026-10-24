@@ -1,0 +1,23 @@
+{
+  "name": "@local/dsh-token-furnace",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Deliberately spends model tokens through ctx.llm.stream(), on demand and metered.",
+  "exports": {
+    ".": "./index.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

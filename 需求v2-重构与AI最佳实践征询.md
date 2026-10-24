@@ -35,6 +35,15 @@ ego lite 是面向 AI Agent 的 Chromium 浏览器(Windows 桌面应用 + `ego-b
 
 **已知限制**:ego 为单机桌面应用,无 headless 集群;脚本每次为独立 Node 进程(变量不跨进程,空间与页面才跨);空间并发数量有预算上限;定时仍需外部调度器触发 CLI。
 
+### 2.1 ego 不绑定单一 Agent——可在其他 AI Agent 中复用
+
+ego-browser 是通用 CLI 工具,与驱动它的 AI 解耦,**任何能执行 shell 命令的 Agent 都能驱动同一个浏览器**:
+
+- **Claude Code 之外的 Agent**:Codex CLI、Gemini CLI、其他厂商的命令行 Agent,只需在提示词里让它们调用 `ego-browser nodejs < 脚本.mjs` 即可复用本项目全部适配器;
+- **多 Agent 协作**:不同 Agent(Claude Sonnet/Opus、GPT、Gemini)可以在同一台机器上先后或分工驱动不同平台的 TaskSpace——**登录态、cookie、页面都持久化在浏览器侧**,换 Agent 不换会话,无需重新登录或重过反爬;
+- **无 Agent 也可运行**:Python 编排器可由 Windows 任务计划程序直接触发,纯脚本定时运行,Agent 只在需要改适配器/处理异常时介入;
+- **含义**:v2 架构不锁定任何 AI 供应商——采集层(ego + 适配器)是中立资产,编排与智能化层(关键词→语义筛选、报告生成)才与具体模型绑定,可随时替换或并行评测多家模型。
+
 ## 3. 新增资源:8 个已注册平台账号
 
 用户持有 8 平台合法账号与数字证书(v1 仅覆盖 3 站且均未登录)。凭据细节略,仅列认证特征:
