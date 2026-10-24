@@ -62,13 +62,15 @@ else: write_local_alert(); sys.exit(2) # 保持未通知, 下一轮自动重试
 
 ### 0.3 补「心跳」
 
-- 每日固定一封日报（建议 08:30 那一轮结束后发），主题固定，无新公告也发。内容：各站 24 小时内成功次数、抓取总条数、新增数、最近一条相关公告的日期。
+- 每日固定一封日报（建议 08:30 那一轮结束后发），主题固定，无新公告也发。内容：各站 24 小时内成功次数、抓取总条数、新增数、最近一条相关公告的日期、计划轮次/实际成功轮次（漏跑可见）。
+- 独立 watchdog：再建一个不依赖 ego 的任务计划，仅检查「距上次成功运行（由 runs 表推导）是否超过 20 小时」，超过即发告警邮件（阈值须大于 2 触发器下 18h 的正常最长空档）。机器整体不可用时 watchdog 同样失效，最终兜底是「日报没到即人工介入」。外部 dead-man's switch 类服务与不上云约束冲突，不引入。
 - 「没收到日报」本身就是系统异常的信号（任务计划挂了、电脑关机、邮件通道坏了）。不依赖云端 ping，符合「不上云」约束。
 
 ### 0.4 迁移到任务计划程序
 
 - 触发器：08:30 与 14:30 两个。
 - 运行条件：仅当用户登录时运行（ego 是桌面应用，注销后无法运行，锁屏没问题）；允许唤醒计算机；错过后尽快运行；不并行启动新实例。
+- 上线前验证 ego 是否必须在登录会话中运行（决定「无论用户是否登录都运行」是否可用）；漏跑可见性靠日报的计划/实际轮次对比。
 - 失败处理：失败后 10 分钟重试，最多 2 次；任务时间上限 30 分钟。
 - 操作：程序填 conda 环境里 python 的绝对路径，参数 run_check.py，起始于 C:/work/ebid（v2 仓库根，见 4.1）；标准输出重定向到 data/logs/run_日期_时间.log，保留 30 天。
 - 切换顺序：先暂停 Claude 应用里的 avc-agc-bid-watch，再启用新任务，避免双发和并发写 seen.json。
@@ -97,15 +99,16 @@ run_check.py # 薄入口
 core/ # Python: config, db, dedupe, runner, notify, report, keywords
 adapters/ # 每站一个适配器 (.mjs 浏览器站 /.py 静态站)
 _lib/common.mjs # 公共库: 导航白名单、等待、清洗、输出
-config/sites.json # 站点开关, space 名, 是否通知, 检查频率
-config/sites.mock.json # 测试环境: 基址用 ${MOCK_BASE}, 指向本机容器 (仅测试用)
-docker-compose.yml # 测试 WEB: mock-web (+ 可选 mailpit)
-.env.example # MOCK_PORT=18080 等; 真实.env 不入库
-.gitattributes # *.sh 等强制 LF
-mockweb/ # 自建测试 WEB (见 4.5)：app.py、sites/、scenarios/、Dockerfile、requirements.txt、.dockerignore
-scripts/mock.cmd # up / down / watch / logs 的封装
-data/bid.db data/out/<站点>.json data/logs/
-tests/ (unit/ e2e/ fixtures/) tools/check_redline.py
+config/sites.json # 生产站点开关, space 名, 是否通知, 检查频率
+ebid-v2-mockweb/ # 测试 WEB 子目录: 规划文档 + 全部实现 (2026-10-24 已建成, 提交 1ae2229)
+  mockweb/ # 自建测试 WEB (见 4.5): app.py、sites/、scenarios/、Dockerfile、requirements.txt、.dockerignore
+  docker-compose.yml # mock-web (+ 可选 mailpit), 相对路径以本目录为根
+  config/sites.mock.json # 测试环境: 基址用 ${MOCK_BASE}; BID_ENV=mock 时 core/config.py 从此处加载
+  scripts/mock.cmd # up / mail / down / watch / logs / scenario 的封装
+  tests/ # unit/ (mock 单测) + fixtures/ (真站快照); e2e/ 随 Phase 1 core 补
+  .env.example .gitattributes # 真实 .env 不入库
+data/bid.db data/out/<站点>.json data/logs/ # 运行时数据
+tests/e2e/ tools/check_redline.py # e2e 挂架与红线自检属 Phase 1 core 工作, 在仓库根
 ```
 
 - 国能E招这类静态站保留 Python 适配器，与浏览器适配器输出同一种 JSON，不为统一而重写。
@@ -135,13 +138,14 @@ tests/ (unit/ e2e/ fixtures/) tools/check_redline.py
 - 变更公告的类型进入键，作为新事件通知（截止时间变更对投标很关键）。
 - notified_at 为空即待通知——这是 Phase 0.1 修复在数据层的通用化；用 sqlite3 标准库，写入走事务，避免 seen.json 的非原子写入问题。
 - 同键内容变化：dedupe 命中后比较 deadline 与标题哈希，任一变化即视为新事件重新通知并更新记录——覆盖「同一公告原地更新、截止时间二次变更」这类情况。
-- 库备份：开启 WAL；每轮成功结束后把 bid.db 复制为 data/backup/bid_日期时间.db，滚动保留最近 14 份。bid.db 是「已通知」状态的唯一事实来源，损坏等于全量重发或历史丢失。
+- 库备份：不直接拷文件（WAL 未 checkpoint 时拷 .db 会丢最近写入，写入期间拷贝也可能得到损坏副本），只走 SQLite 自身机制——VACUUM INTO 'data/backup/bid_日期时间.db'（目标文件须不存在，得到压缩后的一致快照）或 sqlite3.Connection.backup()。每轮成功结束后执行，滚动保留 14 份；备份后对副本跑 PRAGMA integrity_check；Phase 1 验收前做一次「从备份恢复」演练。WAL 非必需（单用户、单写入进程），不开。bid.db 是「已通知」状态的唯一事实来源，损坏等于全量重发或历史丢失。
+- 详情快照与全文检索 Phase 1 不做（§5.3 只匹配不入库），notices 表留扩展位（如 content_hash / body_path 列），需求 Q10 顺延。
 
 ### 4.4 迁移与测试
 
-- tools/import_seen.py：一次性导入旧 seen.json（标为 legacy 已通知），导入后跑一次 --baseline，避免首轮重复通知。
+- tools/import_seen.py：一次性导入 old/data/seen.json（v1 归档时已移入 old/，标为 legacy 已通知），导入后跑一次 --baseline，避免首轮重复通知。
 - pytest 覆盖：title_norm、dedupe_key、关键词正则、邮件落库门控（用假发送器）、国能E招 HTML 夹具解析。
-- 关键词集中在 core/keywords.py：包含词、排除词；ASCII 词加边界，如 (?<![A-Za-z])AVC(?![A-Za-z])。
+- 关键词集中在 core/keywords.py：包含词、排除词；ASCII 词加边界，如 (?<![A-Za-z])AVC(?![A-Za-z])。关键词做成配置表：覆盖全称/简称（自动电压控制/自动发电控制）、全半角与大小写、业务关联叫法（调频、涉网等，按行业习惯补全）；标题与正文都匹配（§5.3 已抓正文）；notices 表记录命中词便于复盘；宁可误报不漏报；每月人工抽检一次——在各站内手工检索关键词，与监控命中结果比对，评估召回。
 - 新旧并行 3 天（旧入口保留为 run_check_v1.py，只演练不发信），比对条目集合，差异可解释后切换。
 
 ### 4.5 自建测试 WEB（mock 站点）
@@ -181,13 +185,15 @@ tests/ (unit/ e2e/ fixtures/) tools/check_redline.py
 5. 灰度：config/sites.json 中设 notify: false，只入库不发通知，观察 2 轮。
 6. 打开通知，正式启用。
 
+范围变更（R1 的「8 平台全接入」改为按公告量实测决定、登录类默认不做）：未接入与暂缓站点维护在 docs/site_matrix.md 的「未覆盖清单」，每月人工巡检一次，让覆盖缺口可见；若 AVC/AGC 公告实测集中在登录类站点，回到 §6 决策门重评。
+
 ### 5.3 正文二次匹配（试点 1 站，1–2 天）
 
 只匹配标题会漏掉「AVC 只是大项目一个子项」的公告。对标题含「改造、升级、技改、综合自动化、调度、涉网、监控系统」等词的公告（词表由你按业务调整），抓正文再做关键词匹配，命中记 match_source = body。每轮限量并加 2–5 秒随机间隔，请求量远低于人工浏览。
 
 ### 5.4 频率
 
-默认每日 2–4 次，写进配置可调。不追求 2 小时一轮：投标窗口通常是几天到几周，频率翻倍只增加反爬风险和资源占用。
+频率基线（已接受，较需求 R5 的 ≤2h 放松）：每日 2 轮（08:30/14:30），最坏延迟 18h、平均约 7.5h=(6²+18²)/(2×24)。夜间空档是主因：若要压缩，08:30/12:30/16:30 最坏 16h，五点最坏 12h，达到 ≤2h 需每日 ≥12 轮且覆盖夜间——与并发预算、反爬、维护成本权衡后暂不做。临近截标的单站调高频率已留配置口子；触发点增减须同步修改任务计划。投标窗口通常是几天到几周，频率翻倍只增加反爬风险和资源占用。
 
 涉及文件：adapters/<站点>.mjs、config/sites.json、tests/fixtures/、docs/site_matrix.md（实测表）。
 

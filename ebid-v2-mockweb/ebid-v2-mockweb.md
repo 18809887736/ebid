@@ -69,6 +69,8 @@ services:
 
 ### 3.2 与 config/sites.mock.json 的配合
 
+- 实现位置：docker-compose.yml、mockweb/、config/sites.mock.json、scripts/mock.cmd、tests/ 全部在 ebid-v2-mockweb/ 子目录下（与本文档同目录），compose 内相对路径以该目录为根；core/config.py 在 BID_ENV=mock 时从 ebid-v2-mockweb/config/sites.mock.json 加载。
+
 - 文件里所有基址都写成 `${MOCK_BASE}/<站点>/`，MOCK_BASE 默认 http://127.0.0.1:18080，由 core/config.py 加载时展开环境变量。端口只在 .env 的 MOCK_PORT 和 MOCK_BASE 这两处出现，scripts/mock.cmd 启动时根据 MOCK_PORT 生成 MOCK_BASE，避免两处不一致。
 - BID_ENV=mock 时加载 sites.mock.json，适配器的 URL 白名单只含 MOCK_BASE；生产加载 sites.json，白名单不含任何本机地址，由 check_redline.py 检查。
 - ego 和 run_check.py 都在宿主机上跑，所以直接访问 127.0.0.1:18080，不需要进容器网络；容器也不会反过来访问宿主机。
