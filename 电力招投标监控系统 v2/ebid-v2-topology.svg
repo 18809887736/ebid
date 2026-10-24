@@ -1,0 +1,392 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1840 1340" width="1840" height="1340" font-family="'Microsoft YaHei','PingFang SC','Noto Sans CJK SC','Segoe UI',Arial,sans-serif" xmlns:c2pa="http://c2pa.org/manifest"><metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYToyZjg2ZTU5NC1kNzAyLTQwZWItYjQwZS03ZmNjN2VlYzYxNDAAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaHrBbPRz9FwiSjbUaEKy758AAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDpkNGM2ZjQ0OC1jMDRkLTRiZDQtYmRjYS0zNDljZmVjODUzMDZscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNoBda4EAWjCx8Cx+eXjSvyWAAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFgghLnTIxEJsU7GQlLToRdR7Qvcf2XTpO9+KQw5cT+cdXakZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaEL/8U2BqN+gSa6N6HazeO8AAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRNAAAAAAAAAAAAAAAAAGRoYXNoWCBgm4LaB8DO6WLn1orZtwKgoEM2skp7g3lk1pvmeixQCWRuYW1lbmp1bWJmIG1hbmlmZXN0amV4Y2x1c2lvbnOBomVzdGFydBj3Zmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOjJmODZlNTk0LWQ3MDItNDBlYi1iNDBlLTdmY2M3ZWVjNjE0MC9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOjdjZTgzNDVmLTg2MDYtNDU5MC1hMDRhLWYwMTJhM2QyMGU3NXJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCCEudMjEQmxTsZCUtOhF1HtC9x/ZdOk734pDDlxP5x1dqJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggPe2wteBVYXJldf5D8ZqH62tFdoMotswC2bjSzNmRsOqiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggRFruhGL2gJmo+9xnVtyvbK+ILgwirgTvSAtLYLWYBFF0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQAA5u7WrmpwvxTYFf9sKgafZaC2kwjBDtFH4QWXfnkG/KZlPhzXg/oHksMdkdgFmB6zBLAjmCKM6XGUd3OujEkE=</c2pa:manifest></metadata>
+<title>电力招投标监控系统 v2 系统拓扑图</title>
+<desc>Windows 任务计划程序 → run_check.py → core/ → adapters/ → ego 浏览器 → 各招标站点；SQLite；Docker 化 mock 测试 WEB；通知通道；红线检查；生产与测试隔离。</desc>
+<style>
+  .t{font-size:13px;fill:#1f2937}
+  .t12{font-size:12px;fill:#1f2937}
+  .s{font-size:11.5px;fill:#4b5563}
+  .h{font-size:15px;font-weight:700;fill:#111827}
+  .m{font-family:Consolas,'Courier New',monospace}
+  .c{text-anchor:middle}
+  .b{font-weight:700}
+</style>
+<defs>
+  <marker id="aBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2F6DB5"/></marker>
+  <marker id="aRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#D14343"/></marker>
+  <marker id="aPurple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#7A4CB8"/></marker>
+  <marker id="aTeal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#1C8C74"/></marker>
+  <marker id="aAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#D98A00"/></marker>
+  <marker id="aGray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#6B7280"/></marker>
+</defs>
+
+<rect width="1840" height="1340" fill="#ffffff"/>
+
+<!-- 标题 -->
+<text x="40" y="48" font-size="28" font-weight="700" fill="#111827">电力招投标监控系统 v2 · 系统拓扑图</text>
+<text x="40" y="76" font-size="14" fill="#6b7280">依据《实施方案》最新版（含 4.5 Docker 化测试 WEB）· 2026-10-24 · 单人维护 · Windows 11 本机</text>
+
+<!-- 图例 -->
+<g transform="translate(1340,20)">
+  <line x1="0" y1="10" x2="30" y2="10" stroke="#2F6DB5" stroke-width="2.5" marker-end="url(#aBlue)"/>
+  <text x="38" y="14" class="s">生产调用 / 数据流</text>
+  <line x1="150" y1="10" x2="180" y2="10" stroke="#D98A00" stroke-width="2.5" marker-end="url(#aAmber)"/>
+  <text x="188" y="14" class="s">测试链路</text>
+  <line x1="300" y1="10" x2="330" y2="10" stroke="#7A4CB8" stroke-width="2.5" marker-end="url(#aPurple)"/>
+  <text x="338" y="14" class="s">通知</text>
+  <line x1="0" y1="36" x2="30" y2="36" stroke="#D14343" stroke-width="2" stroke-dasharray="6 4"/>
+  <text x="38" y="40" class="s">红线检查范围</text>
+  <line x1="150" y1="36" x2="180" y2="36" stroke="#6B7280" stroke-width="2" stroke-dasharray="6 4"/>
+  <text x="188" y="40" class="s">配置 / 可选</text>
+  <line x1="300" y1="36" x2="330" y2="36" stroke="#1C8C74" stroke-width="2.5" marker-end="url(#aTeal)"/>
+  <text x="338" y="40" class="s">数据读写</text>
+</g>
+
+<!-- ================= 区域 ①：生产环境 ================= -->
+<rect x="30" y="100" width="1780" height="560" rx="14" fill="#F6F9FE" stroke="#2F6DB5" stroke-width="2"/>
+<text x="50" y="128" font-size="17" font-weight="700" fill="#1F4E8C">① 生产环境 · Windows 11 本机 · 任务计划程序触发，无人值守，只跑确定性脚本</text>
+
+<!-- 任务计划程序 -->
+<rect x="55" y="160" width="200" height="190" rx="10" fill="#E8F1FB" stroke="#2F6DB5" stroke-width="1.8"/>
+<text x="155" y="186" class="h c">Windows 任务计划程序</text>
+<text x="155" y="214" class="t c">08:30 / 14:30 触发</text>
+<text x="155" y="236" class="t c">仅用户登录时运行</text>
+<text x="155" y="258" class="t c">错过后尽快补跑</text>
+<text x="155" y="280" class="t c">失败 10 分钟重试 ×2</text>
+<text x="155" y="302" class="t c">时限 30 分钟</text>
+<text x="155" y="324" class="t c">日志留 30 天</text>
+
+<!-- run_check.py -->
+<rect x="290" y="155" width="190" height="200" rx="12" fill="none" stroke="#D14343" stroke-width="1.6" stroke-dasharray="6 4"/>
+<rect x="295" y="160" width="180" height="190" rx="10" fill="#E8F1FB" stroke="#2F6DB5" stroke-width="1.8"/>
+<text x="385" y="186" class="h c m">run_check.py</text>
+<text x="385" y="204" class="s c">薄入口</text>
+<text x="385" y="230" class="t12 c">采集→过滤→去重→通知</text>
+<text x="385" y="250" class="t12 c">正常 / FOUND → 退出码 0</text>
+<text x="385" y="270" class="t12 c">WARN → 退出码 2</text>
+<text x="385" y="290" class="t12 c">超时 taskkill 进程树</text>
+<text x="385" y="310" class="t12 c">分站 4 分 · 总 25 分</text>
+<text x="385" y="330" class="t12 c">单站失败互相隔离</text>
+
+<!-- 红线检查范围（core + adapters） -->
+<rect x="505" y="138" width="650" height="322" rx="12" fill="none" stroke="#D14343" stroke-width="1.6" stroke-dasharray="6 4"/>
+<rect x="855" y="127" width="300" height="22" rx="11" fill="#ffffff" stroke="#D14343" stroke-width="1.2"/>
+<text x="1005" y="142" class="c" font-size="12" font-weight="700" fill="#D14343">红线检查范围 · tools/check_redline.py</text>
+
+<!-- core/ -->
+<rect x="520" y="150" width="300" height="250" rx="10" fill="#E8F1FB" stroke="#2F6DB5" stroke-width="1.8"/>
+<text x="670" y="176" class="h c">core/（Python）</text>
+<g>
+  <rect x="536" y="194" width="132" height="44" rx="6" fill="#fff" stroke="#2F6DB5"/>
+  <text x="602" y="213" class="t c m b">config</text><text x="602" y="229" class="s c" font-size="11">按 BID_ENV 选配置</text>
+  <rect x="676" y="194" width="132" height="44" rx="6" fill="#fff" stroke="#2F6DB5"/>
+  <text x="742" y="213" class="t c m b">db</text><text x="742" y="229" class="s c" font-size="11">sqlite3 · 事务写入</text>
+  <rect x="536" y="244" width="132" height="44" rx="6" fill="#fff" stroke="#2F6DB5"/>
+  <text x="602" y="263" class="t c m b">dedupe</text><text x="602" y="279" class="s c" font-size="11">去重键 · title_norm</text>
+  <rect x="676" y="244" width="132" height="44" rx="6" fill="#fff" stroke="#2F6DB5"/>
+  <text x="742" y="263" class="t c m b">keywords</text><text x="742" y="279" class="s c" font-size="11">包含/排除词 · 词边界</text>
+  <rect x="536" y="294" width="132" height="44" rx="6" fill="#fff" stroke="#2F6DB5"/>
+  <text x="602" y="313" class="t c m b">runner</text><text x="602" y="329" class="s c" font-size="11">逐站调用 · 超时隔离</text>
+  <rect x="676" y="294" width="132" height="44" rx="6" fill="#fff" stroke="#7A4CB8"/>
+  <text x="742" y="313" class="t c m b">notify</text><text x="742" y="329" class="s c" font-size="11">邮件 · 重试 · SMTP 备用</text>
+  <rect x="536" y="344" width="272" height="44" rx="6" fill="#fff" stroke="#7A4CB8"/>
+  <text x="672" y="363" class="t c m b">report</text><text x="672" y="379" class="s c" font-size="11">告警 · 日报心跳 · 运行报告</text>
+</g>
+
+<!-- adapters/ -->
+<rect x="880" y="150" width="260" height="300" rx="10" fill="#E8F1FB" stroke="#2F6DB5" stroke-width="1.8"/>
+<text x="1010" y="176" class="h c">adapters/（每站一个适配器）</text>
+<rect x="896" y="190" width="228" height="48" rx="6" fill="#fff" stroke="#2F6DB5"/>
+<text x="1010" y="208" class="t c m b" font-size="12.5">_lib/common.mjs</text>
+<text x="1010" y="226" class="s c">导航白名单 · 等待 · 清洗 · 输出</text>
+<rect x="896" y="246" width="228" height="44" rx="6" fill="#fff" stroke="#2F6DB5"/>
+<text x="1010" y="264" class="t c b">华电 .mjs</text>
+<text x="1010" y="281" class="s c">iframe 站内搜索 · waitFor*</text>
+<rect x="896" y="298" width="228" height="44" rx="6" fill="#fff" stroke="#2F6DB5"/>
+<text x="1010" y="316" class="t c b">大唐·犀维 .mjs</text>
+<text x="1010" y="333" class="s c">page.fetch() 调公开 POST API</text>
+<rect x="896" y="350" width="228" height="36" rx="6" fill="#fff" stroke="#6B7280" stroke-dasharray="5 3"/>
+<text x="1010" y="373" class="s c">… 后续站点 .mjs（Phase 2 / 3）</text>
+<rect x="896" y="394" width="228" height="44" rx="6" fill="#fff" stroke="#2F6DB5"/>
+<text x="1010" y="412" class="t c b">国能E招 .py</text>
+<text x="1010" y="429" class="s c">urllib 静态抓取 · 无需浏览器</text>
+
+<!-- ego -->
+<rect x="1190" y="240" width="200" height="150" rx="10" fill="#DCE9FA" stroke="#2F6DB5" stroke-width="1.8"/>
+<text x="1290" y="266" class="h c">ego(lite) 浏览器</text>
+<text x="1290" y="290" class="t12 c m">ego-browser nodejs</text>
+<text x="1290" y="308" class="t12 c m">&lt; 适配器 .mjs</text>
+<text x="1290" y="326" class="t12 c">TaskSpace：bid-*</text>
+<text x="1290" y="344" class="t12 c">瑞数 cookie / 会话常驻</text>
+<text x="1290" y="362" class="t12 c">真实 Chromium 内核</text>
+
+<!-- 互联网 · 真实站点 -->
+<rect x="1450" y="140" width="340" height="340" rx="12" fill="#F3F4F6" stroke="#6B7280" stroke-width="1.8"/>
+<text x="1470" y="166" class="h">互联网 · 真实招标站点</text>
+<rect x="1470" y="180" width="300" height="62" rx="8" fill="#fff" stroke="#6B7280"/>
+<text x="1485" y="202" class="t b">华电 chdtp.com</text>
+<text x="1485" y="222" class="s">瑞数反爬 · iframe 站内搜索 · 公开列表</text>
+<rect x="1470" y="254" width="300" height="62" rx="8" fill="#fff" stroke="#6B7280"/>
+<text x="1485" y="276" class="t b">大唐 cdt-ec.com（经犀维 cweme.cn）</text>
+<text x="1485" y="296" class="s">公开 POST API · 招标 / 变更 / 非招标</text>
+<rect x="1470" y="328" width="300" height="62" rx="8" fill="#fff" stroke="#6B7280" stroke-dasharray="5 3"/>
+<text x="1485" y="350" class="t b">其他站点（Phase 2 / 3）</text>
+<text x="1485" y="370" class="s">华能 · 国家电投 · 中电设网 · 国网 · 国能e购</text>
+<rect x="1470" y="402" width="300" height="62" rx="8" fill="#fff" stroke="#6B7280"/>
+<text x="1485" y="424" class="t b">国能E招 chnenergybidding.com.cn</text>
+<text x="1485" y="444" class="s">静态 HTML · 三类公告 · 前 3 页</text>
+
+<!-- 主流程箭头 -->
+<line x1="255" y1="255" x2="294" y2="255" stroke="#2F6DB5" stroke-width="2.5" marker-end="url(#aBlue)"/>
+<text x="275" y="247" class="s c" font-size="11">触发</text>
+<line x1="475" y1="255" x2="519" y2="255" stroke="#2F6DB5" stroke-width="2.5" marker-end="url(#aBlue)"/>
+<text x="497" y="247" class="s c" font-size="11">调用</text>
+<line x1="820" y1="255" x2="879" y2="255" stroke="#2F6DB5" stroke-width="2.5" marker-end="url(#aBlue)"/>
+<text x="850" y="247" class="s c" font-size="11">逐站串行</text>
+<line x1="1140" y1="300" x2="1189" y2="300" stroke="#2F6DB5" stroke-width="2.5" marker-end="url(#aBlue)"/>
+<text x="1165" y="292" class="s c" font-size="11">驱动</text>
+<path d="M1390 290 C1425 290 1430 211 1469 211" fill="none" stroke="#2F6DB5" stroke-width="2.5" marker-end="url(#aBlue)"/>
+<path d="M1390 315 C1430 315 1430 285 1469 285" fill="none" stroke="#2F6DB5" stroke-width="2.5" marker-end="url(#aBlue)"/>
+<path d="M1390 340 C1425 340 1430 359 1469 359" fill="none" stroke="#2F6DB5" stroke-width="2.5" marker-end="url(#aBlue)"/>
+<line x1="1124" y1="416" x2="1469" y2="416" stroke="#2F6DB5" stroke-width="2.5" marker-end="url(#aBlue)"/>
+<text x="1300" y="434" class="s c">urllib 直连（无需浏览器）</text>
+
+<!-- 数据层 -->
+<rect x="520" y="480" width="300" height="165" rx="10" fill="#E6F5F1" stroke="#1C8C74" stroke-width="1.8"/>
+<text x="670" y="504" class="h c">SQLite · data/bid.db</text>
+<rect x="536" y="516" width="134" height="56" rx="6" fill="#fff" stroke="#1C8C74"/>
+<text x="603" y="533" class="t c m b" font-size="12.5">notices</text>
+<text x="603" y="549" class="s c" font-size="11">公告 · dedupe_key 唯一</text>
+<text x="603" y="563" class="s c" font-size="11">notified_at 空=待通知</text>
+<rect x="676" y="516" width="132" height="56" rx="6" fill="#fff" stroke="#1C8C74"/>
+<text x="742" y="533" class="t c m b" font-size="12.5">runs</text>
+<text x="742" y="549" class="s c" font-size="11">每轮结果</text>
+<text x="742" y="563" class="s c" font-size="11">邮件状态</text>
+<rect x="536" y="582" width="134" height="56" rx="6" fill="#fff" stroke="#1C8C74"/>
+<text x="603" y="599" class="t c m b" font-size="12.5">site_runs</text>
+<text x="603" y="615" class="s c" font-size="11">raw_count · 命中 · 新增</text>
+<text x="603" y="629" class="s c" font-size="11">耗时 · 会话状态</text>
+<rect x="676" y="582" width="132" height="56" rx="6" fill="#fff" stroke="#1C8C74"/>
+<text x="742" y="599" class="t c m b" font-size="12.5">site_state</text>
+<text x="742" y="615" class="s c" font-size="11">连续失败 · 告警冷却</text>
+<text x="742" y="629" class="s c" font-size="11">last_nonzero_raw_at</text>
+
+<rect x="880" y="490" width="260" height="76" rx="8" fill="#E6F5F1" stroke="#1C8C74" stroke-width="1.5"/>
+<text x="1010" y="512" class="t c m b" font-size="12.5">data/out/&lt;站点&gt;.json</text>
+<text x="1010" y="530" class="s c">适配器输出 · 每站一个文件</text>
+<text x="1010" y="546" class="s c">故障互相隔离 · ok / raw_count / items[]</text>
+<text x="1010" y="560" class="s c" font-size="10.5">→ runner 读入 → 去重入库</text>
+<rect x="880" y="578" width="260" height="46" rx="8" fill="#E6F5F1" stroke="#1C8C74" stroke-width="1.2"/>
+<text x="1010" y="605" class="t c m" font-size="12.5">data/logs/ · 运行日志（留 30 天）</text>
+
+<line x1="1010" y1="450" x2="1010" y2="489" stroke="#1C8C74" stroke-width="2.5" marker-end="url(#aTeal)"/>
+<text x="1018" y="474" class="s" font-size="11">写出</text>
+<line x1="880" y1="528" x2="821" y2="528" stroke="#1C8C74" stroke-width="2.5" marker-end="url(#aTeal)"/>
+<line x1="670" y1="401" x2="670" y2="479" stroke="#1C8C74" stroke-width="2.5" marker-start="url(#aTeal)" marker-end="url(#aTeal)"/>
+<text x="678" y="446" class="s" font-size="11">sqlite3 事务</text>
+
+<!-- 通知通道 -->
+<rect x="55" y="370" width="415" height="275" rx="10" fill="#F1EAF9" stroke="#7A4CB8" stroke-width="1.8"/>
+<text x="262" y="396" class="h c">通知通道（notify / report）</text>
+<rect x="70" y="408" width="385" height="32" rx="6" fill="#fff" stroke="#7A4CB8"/>
+<rect x="70" y="408" width="6" height="32" rx="3" fill="#7A4CB8"/>
+<text x="86" y="429" class="t">邮件（主）：agently API → QQ 邮箱</text>
+<rect x="70" y="446" width="385" height="32" rx="6" fill="#fff" stroke="#7A4CB8"/>
+<rect x="70" y="446" width="6" height="32" rx="3" fill="#7A4CB8"/>
+<text x="86" y="467" class="t">SMTP 备用：agently 失败后改走，仍失败则本地告警</text>
+<rect x="70" y="484" width="385" height="50" rx="6" fill="#fff" stroke="#D14343"/>
+<rect x="70" y="484" width="6" height="50" rx="3" fill="#D14343"/>
+<text x="86" y="504" class="t">告警邮件：站点连续失败 ≥2 轮 / raw_count=0 /</text>
+<text x="86" y="522" class="t">ego 无产出（同站 24h ≤1 封）；恢复时另发通知</text>
+<rect x="70" y="540" width="385" height="44" rx="6" fill="#fff" stroke="#7A4CB8"/>
+<rect x="70" y="540" width="6" height="44" rx="3" fill="#7A4CB8"/>
+<text x="86" y="559" class="t">日报心跳：每日一封，无新公告也发</text>
+<text x="86" y="576" class="s">没收到日报 = 任务计划 / 电脑 / 邮件通道异常</text>
+<rect x="70" y="590" width="385" height="28" rx="6" fill="#fff" stroke="#6B7280" stroke-dasharray="5 3"/>
+<text x="86" y="609" class="s">可选：Webhook（企业微信 / 钉钉 / 飞书）</text>
+<text x="262" y="636" class="c" font-size="12" font-weight="700" fill="#7A4CB8">收件人：你（QQ 邮箱）</text>
+<line x1="520" y1="392" x2="471" y2="392" stroke="#7A4CB8" stroke-width="2.5" marker-end="url(#aPurple)"/>
+<text x="495" y="386" class="s c" font-size="11">通知</text>
+
+<!-- 红线检查 -->
+<rect x="1190" y="500" width="600" height="145" rx="10" fill="#FDECEC" stroke="#D14343" stroke-width="1.8"/>
+<text x="1490" y="526" class="h c" fill="#B42323" style="fill:#B42323">tools/check_redline.py · 红线检查（上线前自检）</text>
+<text x="1210" y="550" class="t12">1  扫描 run_check.py / core/ / adapters/ 发现 LLM Agent CLI → 失败</text>
+<text x="1210" y="569" class="t12">2  出现非白名单域名 → 失败</text>
+<text x="1210" y="588" class="t12">3  生产配置含 mock 基址 127.0.0.1 → 失败</text>
+<text x="1210" y="607" class="t12">4  生产路径调用 docker → 失败</text>
+<text x="1210" y="626" class="t12">5  适配器每次改动须你人工看 diff 后才上线</text>
+<path d="M1190 572 H1168 V440 H1156" fill="none" stroke="#D14343" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#aRed)"/>
+
+<!-- ================= 隔离带 ================= -->
+<rect x="30" y="668" width="1780" height="76" rx="8" fill="#F3F4F6" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="8 5"/>
+<text x="60" y="698" font-size="13" font-weight="700" fill="#2F6DB5">▲ 生产（真站）</text>
+<text x="60" y="724" font-size="13" font-weight="700" fill="#D98A00">▼ 测试（mock）</text>
+<text x="920" y="698" class="c" font-size="16" font-weight="700" fill="#374151">环境隔离带：生产链路与测试链路只共享代码，不共享配置、URL 白名单、ego 空间和网络目标</text>
+<text x="920" y="724" class="c" font-size="13" fill="#6b7280">例外：dev-* 空间（未登录、人在场）可低频访问真站，用于探索页面、录制快照和 1–2 次冒烟；它不进入定时链路。</text>
+
+<!-- ================= 区域 ②：测试环境 ================= -->
+<rect x="30" y="750" width="1780" height="560" rx="14" fill="#FFFBF1" stroke="#D98A00" stroke-width="2"/>
+<text x="50" y="778" font-size="17" font-weight="700" fill="#9A6200">② 测试环境 · 仅本机回环 · Docker Desktop（WSL2）+ docker-compose · 按需手动启动，不随开机自启</text>
+
+<!-- 测试链路 -->
+<rect x="55" y="800" width="210" height="96" rx="10" fill="#FFF1CC" stroke="#D98A00" stroke-width="1.6"/>
+<text x="160" y="824" class="h c m" font-size="13.5">tests/e2e</text>
+<text x="160" y="842" class="t12 c">pytest -m e2e</text>
+<text x="160" y="860" class="t12 c m">up -d --wait 启动 mock</text>
+<text x="160" y="878" class="t12 c">断言入库 / 通知 / 告警</text>
+<rect x="300" y="800" width="190" height="96" rx="10" fill="#FFF1CC" stroke="#D98A00" stroke-width="1.6"/>
+<text x="395" y="824" class="h c m" font-size="13.5">run_check.py</text>
+<text x="395" y="842" class="t12 c m">BID_ENV=mock</text>
+<text x="395" y="860" class="t12 c">（同一份代码）</text>
+<text x="395" y="878" class="t12 c">先 GET /__health</text>
+<rect x="525" y="800" width="190" height="96" rx="10" fill="#FFF1CC" stroke="#D98A00" stroke-width="1.6"/>
+<text x="620" y="824" class="h c m" font-size="13.5">adapters/</text>
+<text x="620" y="842" class="t12 c">（同一份代码）</text>
+<text x="620" y="860" class="t12 c">URL 白名单仅 MOCK_BASE</text>
+<text x="620" y="878" class="t12 c">通知改投测试接收器</text>
+<rect x="750" y="800" width="200" height="96" rx="10" fill="#FFF1CC" stroke="#D98A00" stroke-width="1.6"/>
+<text x="850" y="824" class="h c">ego(lite) 浏览器</text>
+<text x="850" y="842" class="t12 c">TaskSpace：test-*</text>
+<text x="850" y="860" class="t12 c">与 bid-* 隔离</text>
+<text x="850" y="878" class="t12 c">cookie 不串</text>
+<line x1="265" y1="848" x2="299" y2="848" stroke="#D98A00" stroke-width="2.5" marker-end="url(#aAmber)"/>
+<line x1="490" y1="848" x2="524" y2="848" stroke="#D98A00" stroke-width="2.5" marker-end="url(#aAmber)"/>
+<line x1="715" y1="848" x2="749" y2="848" stroke="#D98A00" stroke-width="2.5" marker-end="url(#aAmber)"/>
+<line x1="950" y1="880" x2="1039" y2="880" stroke="#D98A00" stroke-width="2.5" marker-end="url(#aAmber)"/>
+<text x="955" y="862" class="s" font-size="10.5">127.0.0.1</text>
+<text x="955" y="874" class="s" font-size="10.5">:18080</text>
+
+<!-- 配置 / dev -->
+<rect x="300" y="915" width="650" height="84" rx="8" fill="#FFF8E6" stroke="#6B7280" stroke-width="1.4" stroke-dasharray="6 4"/>
+<text x="625" y="938" class="t c m b">config/sites.mock.json + .env</text>
+<text x="625" y="958" class="t12 c">各站基址写作 ${MOCK_BASE}/&lt;站点&gt;/，由 core/config.py 展开环境变量</text>
+<text x="625" y="978" class="t12 c">MOCK_PORT=18080 → MOCK_BASE=http://127.0.0.1:18080（scripts/mock.cmd 同步生成）</text>
+<line x1="395" y1="914" x2="395" y2="897" stroke="#6B7280" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#aGray)"/>
+<line x1="620" y1="914" x2="620" y2="897" stroke="#6B7280" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#aGray)"/>
+<text x="508" y="909" class="s c" font-size="11">BID_ENV=mock 选用</text>
+<rect x="55" y="915" width="210" height="84" rx="8" fill="#fff" stroke="#D98A00" stroke-width="1.4"/>
+<text x="160" y="938" class="t c b">dev-* 空间</text>
+<text x="160" y="957" class="t12 c">未登录 · 人在场（可借 AI）</text>
+<text x="160" y="975" class="t12 c">探索真站 → 录制快照</text>
+<text x="160" y="991" class="t12 c m" font-size="11">→ tests/fixtures/&lt;站点&gt;/</text>
+
+<!-- 隔离对照表 -->
+<rect x="55" y="1020" width="895" height="282" rx="8" fill="#fff" stroke="#D98A00" stroke-width="1.4"/>
+<text x="68" y="1044" class="h">生产 ↔ 测试 隔离对照</text>
+<rect x="215" y="1056" width="340" height="24" fill="#DCE9FA"/>
+<rect x="555" y="1056" width="395" height="24" fill="#FFE9B8"/>
+<text x="68" y="1073" class="t12 b">对比项</text>
+<text x="225" y="1073" class="t12 b" fill="#1F4E8C" style="fill:#1F4E8C">生产</text>
+<text x="565" y="1073" class="t12 b" style="fill:#9A6200">测试</text>
+<g>
+  <rect x="56" y="1104" width="893" height="24" fill="#FAFAFA"/>
+  <rect x="56" y="1152" width="893" height="24" fill="#FAFAFA"/>
+  <rect x="56" y="1200" width="893" height="24" fill="#FAFAFA"/>
+  <rect x="56" y="1248" width="893" height="24" fill="#FAFAFA"/>
+  <line x1="215" y1="1056" x2="215" y2="1296" stroke="#E5E7EB"/>
+  <line x1="555" y1="1056" x2="555" y2="1296" stroke="#E5E7EB"/>
+
+  <text x="68" y="1096" class="t12 b">触发</text>
+  <text x="225" y="1096" class="t12">任务计划程序 08:30 / 14:30</text>
+  <text x="565" y="1096" class="t12">手动 / pytest 触发</text>
+
+  <text x="68" y="1120" class="t12 b">配置文件</text>
+  <text x="225" y="1120" class="t12 m">config/sites.json</text>
+  <text x="565" y="1120" class="t12 m">config/sites.mock.json</text>
+
+  <text x="68" y="1144" class="t12 b">环境变量</text>
+  <text x="225" y="1144" class="t12">不设置（默认生产）</text>
+  <text x="565" y="1144" class="t12 m">BID_ENV=mock · MOCK_BASE · MOCK_PORT</text>
+
+  <text x="68" y="1168" class="t12 b">URL 白名单</text>
+  <text x="225" y="1168" class="t12">真实招标站点域名</text>
+  <text x="565" y="1168" class="t12">仅 MOCK_BASE（127.0.0.1:18080）</text>
+
+  <text x="68" y="1192" class="t12 b">ego 空间</text>
+  <text x="225" y="1192" class="t12 m">bid-*</text><text x="270" y="1192" class="t12">（会话常驻）</text>
+  <text x="565" y="1192" class="t12 m">test-*</text><text x="613" y="1192" class="t12">（dev-* 另作探索用）</text>
+
+  <text x="68" y="1216" class="t12 b">访问目标</text>
+  <text x="225" y="1216" class="t12">互联网真站</text>
+  <text x="565" y="1216" class="t12">本机 mock-web（容器不出网）</text>
+
+  <text x="68" y="1240" class="t12 b">通知去向</text>
+  <text x="225" y="1240" class="t12">agently 邮件 → QQ 邮箱</text>
+  <text x="565" y="1240" class="t12">mailpit · webhook 接收桶</text>
+
+  <text x="68" y="1264" class="t12 b">依赖 Docker</text>
+  <text x="225" y="1264" class="t12">无（任务计划不碰容器）</text>
+  <text x="565" y="1264" class="t12">需要 Docker Desktop，按需启动</text>
+
+  <text x="68" y="1288" class="t12 b">AI 参与</text>
+  <text x="225" y="1288" class="t12">禁止驱动已登录会话，不进定时链路</text>
+  <text x="565" y="1288" class="t12">开发调试可借助 AI（人在场）</text>
+</g>
+
+<!-- Docker Desktop -->
+<rect x="1010" y="800" width="780" height="490" rx="12" fill="#E9F6FC" stroke="#1E88B5" stroke-width="2"/>
+<text x="1030" y="826" class="h" style="fill:#176B8F">Docker Desktop · WSL2 后端 · docker-compose.yml</text>
+<text x="1030" y="846" class="s">restart: no · 不随开机自启 · 不挂载 data/、ego 配置、凭据、docker.sock · 容器不出网</text>
+
+<!-- mock-web 容器 -->
+<rect x="1040" y="864" width="470" height="410" rx="10" fill="#ffffff" stroke="#1E88B5" stroke-width="2"/>
+<text x="1056" y="890" class="h">mock-web 容器 · Flask :8080</text>
+<text x="1056" y="910" class="s">端口映射 127.0.0.1:18080→8080（仅回环，不暴露局域网）</text>
+
+<rect x="1056" y="925" width="438" height="96" rx="8" fill="#E3F4FB" stroke="#1E88B5"/>
+<text x="1068" y="944" class="t b">控制面 /__admin</text>
+<text x="1068" y="963" class="t12 m" font-size="11.5">/__admin/scenario?site=&amp;mode=   场景开关</text>
+<text x="1068" y="981" class="t12 m" font-size="11.5">/__admin/reset   全部复位为 normal</text>
+<text x="1068" y="999" class="t12 m" font-size="11.5">/__health 健康检查 · /__sink/webhook 接收桶</text>
+
+<rect x="1056" y="1030" width="438" height="118" rx="8" fill="#F7FCFE" stroke="#1E88B5"/>
+<text x="1068" y="1049" class="t b">mock 站点页面 / 接口</text>
+<text x="1068" y="1070" class="t12">国能E招：三类公告 moreinfo / 2 / 3 页 + 详情页</text>
+<text x="1068" y="1089" class="t12">华电：外层页 + iframe 搜索（iframepage4 · ggbt）</text>
+<text x="1068" y="1108" class="t12">大唐·犀维：同源页面 + 公开 POST JSON 接口</text>
+<text x="1068" y="1127" class="t12">通用站点模板 · 登录页（Phase 3：验证码 + TTL 会话）</text>
+
+<rect x="1056" y="1158" width="438" height="106" rx="8" fill="#FFFBF1" stroke="#D98A00"/>
+<text x="1068" y="1177" class="t b">场景开关（mode）· 运行时切换，无需重启</text>
+<g font-family="Consolas,'Courier New',monospace" font-size="11" text-anchor="middle" fill="#1f2937">
+  <rect x="1068" y="1186" width="54" height="20" rx="10" fill="#FFF1CC" stroke="#D98A00"/><text x="1095" y="1200">normal</text>
+  <rect x="1130" y="1186" width="47" height="20" rx="10" fill="#FFF1CC" stroke="#D98A00"/><text x="1153.5" y="1200">empty</text>
+  <rect x="1185" y="1186" width="67" height="20" rx="10" fill="#FFF1CC" stroke="#D98A00"/><text x="1218.5" y="1200">error5xx</text>
+  <rect x="1260" y="1186" width="60" height="20" rx="10" fill="#FFF1CC" stroke="#D98A00"/><text x="1290" y="1200">timeout</text>
+  <rect x="1068" y="1212" width="106" height="20" rx="10" fill="#FFF1CC" stroke="#D98A00"/><text x="1121" y="1226">layout_changed</text>
+  <rect x="1182" y="1212" width="120" height="20" rx="10" fill="#FFF1CC" stroke="#D98A00"/><text x="1242" y="1226">truncated_titles</text>
+  <rect x="1310" y="1212" width="106" height="20" rx="10" fill="#FFF1CC" stroke="#D98A00"/><text x="1363" y="1226">changed_notice</text>
+  <rect x="1068" y="1238" width="67" height="20" rx="10" fill="#FFF1CC" stroke="#D98A00"/><text x="1101.5" y="1252">poisoned</text>
+  <rect x="1143" y="1238" width="113" height="20" rx="10" fill="#FFF1CC" stroke="#D98A00"/><text x="1199.5" y="1252">session_expired</text>
+  <rect x="1264" y="1238" width="60" height="20" rx="10" fill="#FFF1CC" stroke="#D98A00"/><text x="1294" y="1252">captcha</text>
+</g>
+
+<!-- Docker 右侧：mailpit / fixtures / Dockerfile -->
+<rect x="1530" y="864" width="240" height="118" rx="10" fill="#ffffff" stroke="#1E88B5" stroke-width="1.6" stroke-dasharray="6 4"/>
+<text x="1650" y="888" class="h c m" font-size="13.5">mailpit（可选）</text>
+<text x="1650" y="908" class="t12 c m">profile=mail</text>
+<text x="1650" y="926" class="t12 c">网页 127.0.0.1:18025</text>
+<text x="1650" y="944" class="t12 c">SMTP 127.0.0.1:11025</text>
+<text x="1650" y="964" class="t12 c">接收 mock 环境下的邮件</text>
+
+<rect x="1530" y="996" width="240" height="96" rx="10" fill="#ffffff" stroke="#1E88B5" stroke-width="1.6"/>
+<text x="1650" y="1020" class="h c m" font-size="13.5">tests/fixtures</text>
+<text x="1650" y="1040" class="t12 c">真站公开页面快照</text>
+<text x="1650" y="1058" class="t12 c m">只读挂载 :ro → /fixtures</text>
+<text x="1650" y="1076" class="t12 c">来源：dev-* 空间录制</text>
+<line x1="1529" y1="1044" x2="1512" y2="1044" stroke="#1E88B5" stroke-width="2.5" marker-end="url(#aGray)" style="stroke:#1E88B5"/>
+
+<rect x="1530" y="1106" width="240" height="168" rx="10" fill="#ffffff" stroke="#1E88B5" stroke-width="1.6"/>
+<text x="1650" y="1130" class="h c">构建与热更新</text>
+<text x="1650" y="1152" class="t12 c m">mockweb/Dockerfile</text>
+<text x="1650" y="1170" class="t12 c m">python:3.12-slim</text>
+<text x="1650" y="1188" class="t12 c">COPY → /app</text>
+<text x="1650" y="1210" class="t12 c m">docker compose watch</text>
+<text x="1650" y="1228" class="t12 c">sync+restart / rebuild</text>
+<text x="1650" y="1246" class="t12 c">改 requirements 自动重建</text>
+<text x="1650" y="1264" class="t12 c m">scripts/mock.cmd 封装命令</text>
+<line x1="1529" y1="1190" x2="1512" y2="1190" stroke="#1E88B5" stroke-width="2.5" marker-end="url(#aGray)" style="stroke:#1E88B5"/>
+
+<!-- 脚注 -->
+<text x="40" y="1328" font-size="12" fill="#6b7280">说明：本图依据实施方案的最新版绘制（含 4.5 节 Docker 化测试 WEB）；GitHub 仓库中的导出版尚未包含 4.5 节。</text>
+</svg>
