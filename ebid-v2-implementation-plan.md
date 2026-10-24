@@ -146,7 +146,7 @@ tests/ (unit/ e2e/ fixtures/) tools/check_redline.py
 
 ### 4.5 自建测试 WEB（mock 站点）
 
-完整规划已独立为 [ebid-v2-mockweb.md](ebid-v2-mockweb.md)（技术选型、compose 组织、接口与 token 约定、mock 对象与场景模式、Windows+Docker 注意事项、调试流程、各阶段接入、边界与安全）。要点：
+完整规划已独立为 [ebid-v2-mockweb.md](ebid-v2-mockweb/ebid-v2-mockweb.md)（技术选型、compose 组织、接口与 token 约定、mock 对象与场景模式、Windows+Docker 注意事项、调试流程、各阶段接入、边界与安全）。要点：
 
 - 本机 Docker（WSL2）里的 Flask mock 站点，127.0.0.1:18080 仅回环；公司策略禁用时退回裸跑 Flask。
 - 适配器开发、调试、回归全部对着 mock，真站只做 1–2 次冒烟；不把「mock 全绿」当「真站可用」。
