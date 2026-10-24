@@ -1,0 +1,204 @@
+# 电力招投标监控系统 v2 实施方案
+
+基于《需求v2-重构与AI最佳实践征询》与可行性评估 · 2026-10-24 · 单人维护、Windows 11 本机、ego(lite) 浏览器
+
+## 1. 目标、范围与红线
+
+- 目标：尽早、可靠地发现各电力集团的 AVC/AGC 招标公告；系统一旦出问题，你一定会知道。
+- 范围：先稳住 v1（3 站），再按实测结果扩展；登录类站点放最后评估，不为扩展而扩展。
+- 红线（贯穿所有阶段）：生产定时任务只走确定性脚本，AI 不驱动任何已登录的浏览器会话。
+- 生产链路只有一条：任务计划程序 → run_check.py → ego-browser nodejs < adapters/…。链路中不出现任何 LLM Agent 命令行（Claude Code、Codex、Gemini CLI 等）。
+- AI 只在人在场时参与开发：写、改适配器，分析页面结构；使用 dev-* 命名的未登录空间，不碰 bid-* 生产空间。
+- 公告页面内容一律视为不可信数据：适配器只抽取白名单字段，限制长度并清洗控制字符，绝不把页面文字拼进脚本或命令。
+- 公共库封装导航函数，强制 URL 前缀白名单；不实现任何「报名 / 投标 / 提交」类操作，即使会话有权限也做不到。
+- 可选的 AI 摘要（Phase 2 之后再议）只处理已抽取的纯文本：无工具、无浏览器，失败即回退原文，输出只用于邮件文案，不参与「是否通知」的判断。
+- 上线自检：tools/check_redline.py 扫描 run_check.py、core/、adapters/，发现 agent CLI 调用或非白名单域名即失败；适配器每次改动经你人工看 diff 后才上线。
+
+## 2. 阶段总览
+
+| 阶段 | 内容 | 粗估工作量 | 退出标准 |
+|---|---|---|---|
+| Phase 0 | 修 v1 三个可靠性坑 + 任务计划程序调度 | 1–1.5 天 | 故障演练全部通过，无人值守连跑 3 天 |
+| Phase 1 | 适配器接口、统一 schema、SQLite 重构（仍是原 3 站） | 3–4 天 | 新旧并行 3 天结果一致后切换 |
+| Phase 2 | 逐站实测公开可见性，按公告量依次接入 | 实测 1 天 + 每站 1–2 天 | 每站灰度 2 轮后正式启用 |
+| Phase 3 | 评估必须登录的站点 | 决策 0.5 天；实施每站 2–4 天（可能不做） | 通过决策门才实施 |
+
+工作量是单人、熟悉现有代码的粗估，单位为有效工作日。每个阶段结束打 git tag，保留回滚点。
+
+## 3. Phase 0：修 v1 可靠性 + 任务计划调度
+
+0.0 前置：凭据清理。若 README 里的明文账号密码尚未处理：先改密码和证书口令，仓库转私有，再清 git 历史（git filter-repo 或重建仓库）。同时补全.gitignore：data/、logs/、任何凭据文件。
+
+### 0.1 修「邮件先落库」
+
+- 现状：run_check.py 先把新公告写入 seen.json，再发邮件；邮件失败时这些公告永远不会再通知。
+- 改法：只有发送成功才落库。
+
+```python
+fresh_new, stale_new = split(new_items) # stale = 超过 FRESH_DAYS, 本来就不通知
+mark_seen(stale_new) # 不通知的老公告直接标记
+if baseline: mark_seen(fresh_new); return # 基线模式旧
+if no_email: return # 演练模式不写库, 避免吞掉公告
+ok = send_with_retry(fresh_new) # 立即 / 30 秒 / 2 分钟, 各 1 次
+if not ok: ok = send_via_smtp(fresh_new) # agently 失败再走 SMTP 备用
+if ok: mark_seen(fresh_new) # 只有发送成功才落库
+else: write_local_alert(); sys.exit(2) # 保持未通知, 下一轮自动重试
+```
+
+- 发送成功的判定增加进程返回码检查，不只依赖输出里的 ok 字符串。
+- 取舍：若邮件实际已发出但响应解析失败，下一轮可能重复通知一次——宁重勿漏。
+
+### 0.2 修「静默失败」
+
+- 现状：站点抓取出错只会在「恰好有新公告」时才随邮件带出，其余时候无人知晓。
+- 每站每轮记录结果：成功与否、列表总条数 raw_count（关键词过滤之前）、命中条数、错误信息。适配器需要把 raw_count 返回出来。
+- 告警规则：
+- 单站连续失败 ≥ 2 轮 → 发独立告警邮件，主题；同一站点 24 小时内最多 1 封。
+- 站点此前稳定有列表数据，本轮 raw_count 为 0 → 视为疑似改版，同样告警。
+- ego 整体无产出（浏览器站全挂）→ 告警。
+- 站点恢复 → 发一封恢复通知。
+- 退出码：CLEAN / FOUND 为 0，WARN 为 2，任务计划程序里能直接看到失败。
+- 状态先存 data/state.json（站点连续失败数、上次告警时间），Phase 1 并入 SQLite。
+
+### 0.3 补「心跳」
+
+- 每日固定一封日报（建议 08:30 那一轮结束后发），主题固定，无新公告也发。内容：各站 24 小时内成功次数、抓取总条数、新增数、最近一条相关公告的日期。
+- 「没收到日报」本身就是系统异常的信号（任务计划挂了、电脑关机、邮件通道坏了）。不依赖云端 ping，符合「不上云」约束。
+
+### 0.4 迁移到任务计划程序
+
+- 触发器：08:30 与 14:30 两个。
+- 运行条件：仅当用户登录时运行（ego 是桌面应用，注销后无法运行，锁屏没问题）；允许唤醒计算机；错过后尽快运行；不并行启动新实例。
+- 失败处理：失败后 10 分钟重试，最多 2 次；任务时间上限 30 分钟。
+- 操作：程序填 conda 环境里 python 的绝对路径，参数 run_check.py，起始于 C:/work/bidweb；标准输出重定向到 data/logs/run_日期_时间.log，保留 30 天。
+- 切换顺序：先暂停 Claude 应用里的 avc-agc-bid-watch，再启用新任务，避免双发和并发写 seen.json。
+
+### 0.5 进程超时
+
+subprocess.run(timeout) 只杀直接子进程。改为 Popen，超时后 taskkill /PID <pid> /T /F 清理整个进程树，并设分站超时（建议 4 分钟）与总超时（建议 25 分钟）。
+
+涉及文件：run_check.py（改）、data/state.json（新）、.gitignore（改）。
+
+退出标准（故障演练）：
+1. 故意让 agently 和 SMTP 都失败：新公告不丢，恢复后下一轮补发。
+2. 把某站 URL 改错：2 轮后收到告警，改回后收到恢复通知。
+3. 日报每天按时到达。
+4. 任务计划无人干预连续运行 3 天。
+
+## 4. Phase 1：适配器接口、统一 schema、SQLite
+
+### 4.1 目录结构
+
+```
+bidweb/
+run_check.py # 薄入口
+core/ # Python: config, db, dedupe, runner,
+notify, report, keywords
+adapters/ # 每站一个适配器 (.mjs 浏览器站 /.py 静态站)
+_lib/common.mjs # 公共库: 导航白名单、等待、清洗、输出
+config/sites.json # 站点开关、space 名、是否通知、检查频率
+data/bid.db data/out/<站点>.json data/logs/
+tests/ tools/check_redline.py
+```
+
+- 国能E招这类静态站保留 Python 适配器，与浏览器适配器输出同一种 JSON，不为统一而重写。
+- 先做 1 小时 spike：验证 ego-browser nodejs < 脚本 这种 stdin 方式下，相对路径 import 是否可用。不可用就改用绝对 file URL 动态 import()，或由 Python 把 _lib/common.mjs 与适配器拼接后再喂给 ego。
+
+### 4.2 适配器输出约定（每站一个文件，故障互相隔离）
+
+```json
+{ "site": "华电", "ok": true, "error": null, "session_state": "public",
+"raw_count": 20, "items": [ { "title": "…", "notice_type": "招标公告",
+"published_date": "2026-10-20", "url": "…", "native_id": "…",
+"deadline": "", "org": "", "project_no": "", "channel": "dom"}
+]}
+```
+
+### 4.3 SQLite 表
+
+| 表 | 关键字段 |
+|---|---|
+| notices | id、site、native_id、title、title_norm、notice_type、published_date、url、deadline、org、project_no、first_seen |
+| runs | id、started_at、finished_at、result、mail_status |
+| site_runs | run_id、site、ok、error、raw_count、matched_count、new_count、session_state、duration_s |
+| site_state | site、consecutive_failures、last_ok_at、last_alert_at、last_nonzero_raw_at |
+
+- dedupe_key = 站点 + 类型 + (native_id 或 sha1(title_norm + 日期))。
+- title_norm：去掉省略号和空白、统一全半角，解决 v1 浏览器站标题被截断导致同条公告键不稳定的问题。
+- 变更公告的类型进入键，作为新事件通知（截止时间变更对投标很关键）。
+- notified_at 为空即待通知——这是 Phase 0.1 修复在数据层的通用化；用 sqlite3 标准库，写入走事务，避免 seen.json 的非原子写入问题。
+
+### 4.4 迁移与测试
+
+- tools/import_seen.py：一次性导入旧 seen.json（标为 legacy 已通知），导入后跑一次 --baseline，避免首轮重复通知。
+- pytest 覆盖：title_norm、dedupe_key、关键词正则、邮件落库门控（用假发送器）、国能E招 HTML 夹具解析。
+- 关键词集中在 core/keywords.py：包含词、排除词；ASCII 词加边界，如 (?<![A-Za-z])AVC(?![A-Za-z])。
+- 新旧并行 3 天（旧入口保留为 run_check_v1.py，只演练不发信），比对条目集合，差异可解释后切换。
+
+## 5. Phase 2：逐站实测与按量接入
+
+### 5.1 先实测，再动手（约 1 天）
+
+用无痕窗口、不登录，对 8 个平台逐站填表：
+
+| 平台 | 公开列表可见 | 详情/附件需登录 | 站内搜索或接口 | 反爬形态 | 近 90 天相关公告数 | 发布节奏 |
+|---|---|---|---|---|---|---|
+| 华电 / 国能E招 / 大唐(犀维) / 中电设网 / 国网ECP / 国网电工专区 / 国能e购 / 华能 / 国家电投 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 |
+
+### 5.2 接入顺序
+
+按「公开可见 且 相关公告量大」优先，反爬越重越靠后。每站固定流程：
+1. 在 dev-* 空间探索页面与接口。
+2. 写适配器，保存页面夹具到 tests/fixtures/<站点>/。
+3. 补单测。
+4. 灰度：config/sites.json 中设 notify: false，只入库不发通知，观察 2 轮。
+5. 打开通知，正式启用。
+
+### 5.3 正文二次匹配（试点 1 站，1–2 天）
+
+只匹配标题会漏掉「AVC 只是大项目一个子项」的公告。对标题含「改造、升级、技改、综合自动化、调度、涉网、监控系统」等词的公告（词表由你按业务调整），抓正文再做关键词匹配，命中记 match_source = body。每轮限量并加 2–5 秒随机间隔，请求量远低于人工浏览。
+
+### 5.4 频率
+
+默认每日 2–4 次，写进配置可调。不追求 2 小时一轮：投标窗口通常是几天到几周，频率翻倍只增加反爬风险和资源占用。
+
+涉及文件：adapters/<站点>.mjs、config/sites.json、tests/fixtures/、docs/site_matrix.md（实测表）。
+
+## 6. Phase 3：必须登录的站点（评估后再定）
+
+### 6.1 决策门
+
+对每个「登录才有增量」的站点回答三个问题，全部有数据才决定做不做：
+1. 登录后比公开页多出多少有投标价值的 AVC/AGC 公告（近 90 天，邀请招标、供应商专区等）？
+2. 会话寿命实测：登录后每 15 分钟探测一次，记录首次失效时间，持续 24 小时。
+3. 人工介入频率与增量价值是否匹配？由你设阈值，例如每月多出 ≥ 1 条有价值公告。
+
+不满足就不做；国网 Ukey 类站点若会话撑不过一个检查间隔，基本等于每次人工，默认不接入。
+
+### 6.2 三种实施模式
+
+- A. 账密自动填充：凭据用 Windows DPAPI 加密存于 data/secrets.dpapi，不进 git；Python 编排器解密，通过子进程环境变量传给适配器，读取后立即使用，日志过滤掉这些值。
+- B. 验证码 / 手机证书（handOff，异步）：会话失效时不阻塞——该站降级为公开采集，发告警邮件，内容写明运行 scripts/relogin.mjs <站点>；你完成登录后，下一轮自动恢复。
+- C. Ukey 站点：人工首登 + 每轮会话探测（sessionAlive），失效即告警，不做自动登录。
+
+### 6.3 额外的安全要求
+
+- 开启 BitLocker；ego 浏览器配置目录不进云盘、不进备份、不进 git。
+- 已登录空间只允许访问适配器白名单 URL 前缀（见红线），适配器里不存在点击「报名 / 投标 / 提交」的函数。
+- 登录类适配器的任何改动都必须人工 review 后再上线。
+
+## 7. 风险与回滚
+
+| 风险 | 对策 |
+|---|---|
+| 站点改版导致适配器失效 | raw_count 为 0 告警 + 夹具单测，改版只改单个适配器 |
+| stdin 方式不支持跨文件 import | Phase 1 开头先 spike，备选拼接方案 |
+| 并行期新旧双发 | 旧入口只演练不发信；切换前暂停旧定时任务 |
+| ego 能力与文档描述不一致 | 本方案按文档描述假设成立，每项依赖 ego 的能力在对应阶段先小范围验证 |
+| 电脑关机或注销导致漏跑 | 任务计划「错过后尽快运行」+ 日报缺失即信号 |
+
+回滚：每阶段一个 git tag；Phase 1 并行期保留 v1 入口；任一阶段出问题，可退回上一个 tag 并重新启用旧任务。
+
+## 8. 建议的推进节奏
+
+先做 Phase 0（约 1–1.5 天）并跑满 3 天，再启动 Phase 1。Phase 2 开头的实测表建议在 Phase 1 进行期间并行完成，它决定后面接几个站、接哪些，也决定 Phase 3 要不要做。
