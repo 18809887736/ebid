@@ -1,6 +1,6 @@
 # 电力招投标监控系统 v2 实施方案
 
-基于《需求v2-重构与AI最佳实践征询》与可行性评估 · 2026-10-24 · 单人维护、Windows 11 本机、ego(lite) 浏览器
+基于《需求v2-重构与AI最佳实践征询》（现位于 old/）与可行性评估 · 2026-10-24 · 单人维护、Windows 11 本机、ego(lite) 浏览器；审阅问题清单见 ebid-v2-plan-review.md
 
 ## 1. 目标、范围与红线
 
@@ -53,7 +53,7 @@ else: write_local_alert(); sys.exit(2) # 保持未通知, 下一轮自动重试
 - 现状：站点抓取出错只会在「恰好有新公告」时才随邮件带出，其余时候无人知晓。
 - 每站每轮记录结果：成功与否、列表总条数 raw_count（关键词过滤之前）、命中条数、错误信息。适配器需要把 raw_count 返回出来。
 - 告警规则：
-- 单站连续失败 ≥ 2 轮 → 发独立告警邮件，主题；同一站点 24 小时内最多 1 封。
+- 单站连续失败 ≥ 2 轮 → 发独立告警邮件，主题固定为「【告警】<站点> 连续失败 N 轮」；同一站点 24 小时内最多 1 封。
 - 站点此前稳定有列表数据，本轮 raw_count 为 0 → 视为疑似改版，同样告警。
 - ego 整体无产出（浏览器站全挂）→ 告警。
 - 站点恢复 → 发一封恢复通知。
@@ -70,7 +70,7 @@ else: write_local_alert(); sys.exit(2) # 保持未通知, 下一轮自动重试
 - 触发器：08:30 与 14:30 两个。
 - 运行条件：仅当用户登录时运行（ego 是桌面应用，注销后无法运行，锁屏没问题）；允许唤醒计算机；错过后尽快运行；不并行启动新实例。
 - 失败处理：失败后 10 分钟重试，最多 2 次；任务时间上限 30 分钟。
-- 操作：程序填 conda 环境里 python 的绝对路径，参数 run_check.py，起始于 C:/work/bidweb；标准输出重定向到 data/logs/run_日期_时间.log，保留 30 天。
+- 操作：程序填 conda 环境里 python 的绝对路径，参数 run_check.py，起始于 C:/work/ebid（v2 仓库根，见 4.1）；标准输出重定向到 data/logs/run_日期_时间.log，保留 30 天。
 - 切换顺序：先暂停 Claude 应用里的 avc-agc-bid-watch，再启用新任务，避免双发和并发写 seen.json。
 
 ### 0.5 进程超时
@@ -92,7 +92,7 @@ subprocess.run(timeout) 只杀直接子进程。改为 Popen，超时后 taskkil
 ### 4.1 目录结构
 
 ```
-bidweb/
+ebid/ # 仓库根 C:/work/ebid
 run_check.py # 薄入口
 core/ # Python: config, db, dedupe, runner, notify, report, keywords
 adapters/ # 每站一个适配器 (.mjs 浏览器站 /.py 静态站)
@@ -102,9 +102,7 @@ config/sites.mock.json # 测试环境: 基址用 ${MOCK_BASE}, 指向本机容�
 docker-compose.yml # 测试 WEB: mock-web (+ 可选 mailpit)
 .env.example # MOCK_PORT=18080 等; 真实.env 不入库
 .gitattributes # *.sh 等强制 LF
-mockweb/ # 自建测试 WEB (见 4.5)
-Dockerfile requirements.txt.dockerignore
-app.py sites/ scenarios/
+mockweb/ # 自建测试 WEB (见 4.5)：app.py、sites/、scenarios/、Dockerfile、requirements.txt、.dockerignore
 scripts/mock.cmd # up / down / watch / logs 的封装
 data/bid.db data/out/<站点>.json data/logs/
 tests/ (unit/ e2e/ fixtures/) tools/check_redline.py
@@ -136,6 +134,8 @@ tests/ (unit/ e2e/ fixtures/) tools/check_redline.py
 - title_norm：去掉省略号和空白、统一全半角，解决 v1 浏览器站标题被截断导致同条公告键不稳定的问题。
 - 变更公告的类型进入键，作为新事件通知（截止时间变更对投标很关键）。
 - notified_at 为空即待通知——这是 Phase 0.1 修复在数据层的通用化；用 sqlite3 标准库，写入走事务，避免 seen.json 的非原子写入问题。
+- 同键内容变化：dedupe 命中后比较 deadline 与标题哈希，任一变化即视为新事件重新通知并更新记录——覆盖「同一公告原地更新、截止时间二次变更」这类情况。
+- 库备份：开启 WAL；每轮成功结束后把 bid.db 复制为 data/backup/bid_日期时间.db，滚动保留最近 14 份。bid.db 是「已通知」状态的唯一事实来源，损坏等于全量重发或历史丢失。
 
 ### 4.4 迁移与测试
 
@@ -164,42 +164,41 @@ docker-compose.yml 的组织
 
 ```yaml
 services:
-mock-web:
-build:./mockweb
-restart: "no" # 不随 Docker 自启，只在测试时手动起
-ports:
-- "127.0.0.1:${MOCK_PORT:-18080}:8080" # 必须显式写 127.0.0.1
-environment:
-MOCK_TODAY: "" # 空=真实今天；填 YYYY-MM-DD 冻结日期
-FLASK_DEBUG: "1"
-volumes:
--./tests/fixtures:/fixtures:ro # 真站快照，只读
-develop:
-watch:
-- action: sync+restart
-path:./mockweb
-target: /app
-- action: rebuild
-path:./mockweb/requirements.txt
-healthcheck:
-test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8080/__health')"]
-interval: 5s
-timeout: 3s
-retries: 10
+  mock-web:
+    build: ./mockweb
+    restart: "no" # 不随 Docker 自启，只在测试时手动起
+    ports:
+      - "127.0.0.1:${MOCK_PORT:-18080}:8080" # 必须显式写 127.0.0.1
+    environment:
+      MOCK_TODAY: "" # 空=真实今天；填 YYYY-MM-DD 冻结日期
+    volumes:
+      - ./tests/fixtures:/fixtures:ro # 真站快照，只读
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./mockweb
+          target: /app
+        - action: rebuild
+          path: ./mockweb/requirements.txt
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8080/__health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 ```
 
-- mock-web 是唯一必需的服务。mockweb/Dockerfile 基于 python:3.12-slim，把 mockweb/ 复制进镜像的 /app，用 flask run --host 0.0.0.0 --port 8080 启动；容器内监听全部网卡，宿主机一侧由端口映射限制为回环地址。
+- mock-web 是唯一必需的服务。mockweb/Dockerfile 基于 python:3.12-slim，把 mockweb/ 复制进镜像的 /app，用 flask run --host 0.0.0.0 --port 8080 启动；容器内监听全部网卡，宿主机一侧由端口映射限制为回环地址。不开 FLASK_DEBUG：热更新统一交给 compose watch 的 sync+restart，同时避开 Werkzeug 交互调试器这个任意代码执行入口。
 - 不需要数据库或 redis：状态只有当前场景开关和请求计数，单人使用，重启复位反而是优点；站点数据是只读的 JSON 和模板，要长期保留的场景写成 mockweb/scenarios/*.json 随仓库管理。
-- mailpit 只在测 SMTP 备用通道、查看告警和日报邮件长什么样时启用：docker compose --profile mail up -d。webhook 接收桶内置在 mock-web 里，不单独起服务。
+- mailpit：日常按需 docker compose --profile mail up -d 启用，测 SMTP 备用通道、查看告警和日报邮件样式；E2E（pytest -m e2e）强制启用该 profile 并把 SMTP 指向 mailpit，通知类断言全部落在 mailpit 收件上；agently 通道在 E2E 下用环境开关禁用或替换为假 CLI，以模拟演练 1 的「agently 与 SMTP 双失败」。webhook 接收桶 /__sink 内置在 mock-web 里，不单独起服务——webhook 通知暂不实施，仅作将来通道预留。
 - 容器不需要出网，也不要挂载 data/、ego 配置目录、凭据文件或 docker.sock。
 - 端口放在.env 的 MOCK_PORT（默认 18080）；仓库里只提交.env.example。
 
 Windows + Docker Desktop 注意事项
 
 - WSL2 后端：Win11 上 Docker Desktop 默认用 WSL2，需要 BIOS 开启虚拟化并已装好 WSL2。若公司电脑的策略禁用了虚拟化或 WSL，这套方案跑不起来，此时退回裸跑 Flask（保留 python -m mockweb 入口作为后备）。
-- 文件挂载：代码在构建时复制进镜像，开发时靠 docker compose watch 同步，不依赖把 Windows 目录 bind mount 进容器——那条路径经过 WSL2 跨文件系统，速度慢，文件变更事件也不可靠。只读挂载的 tests/fixtures 体积小，可以接受。compose 里一律写相对路径./…，不写 C:\…；仓库留在 C:/work/bidweb，不必搬进 WSL。
+- 文件挂载：代码在构建时复制进镜像，开发时靠 docker compose watch 同步，不依赖把 Windows 目录 bind mount 进容器——那条路径经过 WSL2 跨文件系统，速度慢，文件变更事件也不可靠。只读挂载的 tests/fixtures 体积小，可以接受。compose 里一律写相对路径./…，不写 C:\…；仓库留在 C:/work/ebid，不必搬进 WSL。
 - 换行符：加.gitattributes，让 *.sh 等容器里要执行的文件强制 LF，避免 CRLF 导致容器内脚本报错。
-- 开机自启：建议关闭 Docker Desktop 的「登录时启动」，容器统一 restart: "no"。测试前手动打开 Docker Desktop；E2E 的 fixture 发现 Docker 没就绪时直接报错并提示，不静默跳过。
+- 开机自启：建议关闭 Docker Desktop 的「登录时启动」，容器统一 restart: "no"。测试前手动打开 Docker Desktop；E2E 的 fixture 发现 Docker 或 ego 任一没就绪时直接报错并提示，不静默跳过。
 - 生产链路不依赖 Docker：任务计划程序 → run_check.py 全程不碰容器；tools/check_redline.py 增加一项检查，生产路径里不得出现 docker 调用。
 - 资源：Docker Desktop 的 WSL2 虚拟机空闲时也占内存；在用户目录的.wslconfig 里设置内存上限（例如 2GB），给 ego 浏览器留足空间。
 - 端口：Hyper-V 可能保留一段端口，冲突时用 netsh int ipv4 show excludedportrange protocol=tcp 查看，并改.env 里的 MOCK_PORT。配置里一律写 127.0.0.1，不写 localhost，避免解析到::1 带来的不确定性；绑定回环地址也不会弹出 Windows 防火墙提示。
@@ -212,7 +211,7 @@ Windows + Docker Desktop 注意事项
 3. 改 requirements.txt 或 Dockerfile：watch 会自动重建；没开 watch 就 docker compose up -d --build。Docker Desktop 版本太旧不支持 watch 时，也用这一条。
 4. 只想切换场景：不用重启，运行时调 curl.exe "http://127.0.0.1:18080/__admin/scenario?site=chd&mode=empty"；/__admin/reset 全部复位为 normal。（PowerShell 里的 curl 是别名，要写 curl.exe。）
 5. 看日志：docker compose logs -f mock-web；进容器排查：docker compose exec mock-web sh。
-6. 跑回归：pytest -m e2e。fixture 执行 docker compose up -d --wait，设置 BID_ENV=mock 和 MOCK_BASE，用例结束默认 docker compose down；调试时加 --keep-mock 保留容器。
+6. 跑回归：pytest -m e2e。fixture 先探测 Docker 与 ego 就绪（ego 用 ego-browser --version），再 docker compose up -d --wait --profile mail，设置 BID_ENV=mock 和 MOCK_BASE，用例结束默认 docker compose down；调试时加 --keep-mock 保留容器。
 7. 收工：docker compose down。
 
 与 config/sites.mock.json 的配合
@@ -232,9 +231,9 @@ Windows + Docker Desktop 注意事项
 | 大唐 / 犀维 | 同源页面 + 公开 POST JSON 接口（三类公告 × 关键词，分页） | page.fetch() 通道、接口字段映射 |
 | 通用站点模板 | 由配置生成「列表页 + 详情页 + 可选站内搜索」 | Phase 2 每个新站先在 mock 里落地 |
 | 登录页（Phase 3） | 账密页、图形验证码页、带 TTL 的会话 cookie、未登录跳转 | sessionAlive、relogin、handOff（见 6.4） |
-| 通知接收桶 | /__sink/webhook 收 webhook 内容并可按场景返回失败；邮件用 compose 里的 Mailpit 容器（可选 profile，见上） | 重试、SMTP 备用、告警与日报内容 |
+| 通知接收桶 | 邮件落 Mailpit 容器（E2E 强制启用、SMTP 指向它）；/__sink/webhook 仅作将来通道预留（webhook 通知暂不实施），可按场景返回失败 | 重试、SMTP 备用、告警与日报内容 |
 
-场景开关通过 /__admin/scenario?site=<站点>&mode=<模式> 切换（也可写 mockweb/scenarios/*.json）。数据可固定，发布日期按「今天」相对生成，用来测 FRESH_DAYS。
+场景开关通过 /__admin/scenario?site=<站点>&mode=<模式> 切换（也可写 mockweb/scenarios/*.json）。所有 /__admin/* 与 /__sink/* 接口要求固定 token 参数（存 .env，脚本与用例从环境变量读取），防止本机其他进程或网页直接 GET 改场景、复位状态，污染正在跑的用例。数据可固定，发布日期按「今天」相对生成，用来测 FRESH_DAYS。
 
 | 模式 | 行为 | 对应的用例 |
 |---|---|---|
@@ -250,7 +249,7 @@ Windows + Docker Desktop 注意事项
 接入各阶段的方式
 
 - Phase 0：不依赖测试 WEB，先快速止血。
-- Phase 1：开头搭骨架并覆盖现有 3 站，再重构适配器。tests/e2e/ 用 docker compose 起 mock、设 BID_ENV=mock，跑完整的 run_check.py，断言入库条目、通知内容和告警；把 Phase 0 的四项演练改写成自动化用例。E2E 会真实驱动 ego，较慢，用 pytest 标记 e2e 单独跑：每次改适配器后、发布前各一次。
+- Phase 1：开头搭骨架并覆盖现有 3 站，再重构适配器。tests/e2e/ 用 docker compose 起 mock、设 BID_ENV=mock，跑完整的 run_check.py，断言入库条目、通知内容和告警（通知断言落在强制启用的 mailpit 收件上，agently 通道用开关模拟失败）；把 Phase 0 的四项演练改写成自动化用例。E2E 会真实驱动 ego，较慢，用 pytest 标记 e2e 单独跑：每次改适配器后、发布前各一次。
 - Phase 2：每个新站先录制公开页面快照，在 mock 里加对应站点，对着 mock 写适配器、补用例，最后只对真站做 1–2 次冒烟（见 5.2）。
 - Phase 3：加登录与会话失效 mock（见 6.4）。
 
@@ -265,7 +264,7 @@ Windows + Docker Desktop 注意事项
 
 ### 5.1 先实测，再动手（约 1 天）
 
-用无痕窗口、不登录，逐站填表。实测对象共 9 站 = 8 个已注册平台（以 2026.10.23 凭据台账「黄标」8 行为准）+ 国能E招（v1 静态站，无账号）；大唐的公开采集通道为犀维网，与大唐同行评估。
+用无痕窗口、不登录，逐站填表。实测对象共 9 站 = 8 个已注册平台（以 2026.10.23 凭据台账「黄标」8 行为准，文件在仓库根目录、受 gitignore 保护）+ 国能E招（v1 静态站，无账号）；大唐的公开采集通道为犀维网，与大唐同行评估。
 
 | # | 平台 | 网址 | 公开列表可见 | 详情/附件需登录 | 站内搜索或接口 | 反爬形态 | 近 90 天相关公告数 | 发布节奏 |
 |---|---|---|---|---|---|---|---|---|
@@ -342,8 +341,10 @@ Windows + Docker Desktop 注意事项
 | 并行期新旧双发 | 旧入口只演练不发信；切换前暂停旧定时任务 |
 | ego 能力与文档描述不一致 | 本方案按文档描述假设成立，每项依赖 ego 的能力在对应阶段先小范围验证 |
 | 电脑关机或注销导致漏跑 | 任务计划「错过后尽快运行」+ 日报缺失即信号 |
+| ego 自动升级后 CLI 协议或行为变化 | 固定版本或延后升级；runs 表记录 ego 版本号；升级前先在 dev-* 空间验证再进生产 |
+| ego 任务空间数量超预算（bid-*/test-*/dev-* 随站点增长） | 临时空间 finish({keep:false}) 回收；空间清单写入日报观测 |
 
-回滚：每阶段一个 git tag；Phase 1 并行期保留 v1 入口；任一阶段出问题，可退回上一个 tag 并重新启用旧任务。
+回滚：每阶段一个 git tag；Phase 1 并行期保留 v1 入口；任一阶段出问题，可退回上一个 tag 并重新启用旧任务。回退到 v1 时，旧入口先跑一次 --baseline 重建 seen.json 再恢复正常调度，避免把 SQLite 里已通知的公告全部重发（import_seen 只有 v1→v2 方向，无反向导出）。
 
 ## 8. 建议的推进节奏
 
