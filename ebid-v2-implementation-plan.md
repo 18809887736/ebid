@@ -1,8 +1,10 @@
 # 电力招投标监控系统 v2 实施方案
 
-基于《需求v2-重构与AI最佳实践征询》（现位于 old/）与可行性评估 · 2026-10-24 · 单人维护、Windows 11 本机、ego(lite) 浏览器；审阅问题清单见 ebid-v2-plan-review.md
+基于《需求v2-重构与AI最佳实践征询》（现位于 old/）与可行性评估 · 2026-10-24 · 单人维护、Windows 11 本机、ego(lite) 浏览器；审阅问题清单见 ebid-v2-plan-review-revised.md（终版）
 
-## 1. 目标、范围与红线
+**本版（2026-10-24 第二版）关键变化：放弃自建测试 WEB（mockweb），测试策略改为「真站标定查询 + 已知答案夹具」——利用各站自带的发布时间/关键词查询，用历史时间窗圈定一组固定不变的已知公告作为回归基准（§4.5）。** mockweb 相关内容（§4.5 原文、E2E 的 compose/mailpit profile、BID_ENV=mock、sites.mock.json、test-* 空间）全部取消；已建成的 ebid-v2-mockweb/ 目录封存不再维护。审阅清单中 E1–E6、A6（目录布局）、B3（webhook 预留）随之作废或失效，C1/C2/C3 三项人工事项不变。
+
+## 1. 目标、范围、红线
 
 - 目标：尽早、可靠地发现各电力集团的 AVC/AGC 招标公告；系统一旦出问题，你一定会知道。
 - 范围：先稳住 v1（3 站），再按实测结果扩展；登录类站点放最后评估，不为扩展而扩展。
@@ -12,22 +14,22 @@
 - 公告页面内容一律视为不可信数据：适配器只抽取白名单字段，限制长度并清洗控制字符，绝不把页面文字拼进脚本或命令。
 - 公共库封装导航函数，强制 URL 前缀白名单；不实现任何「报名 / 投标 / 提交」类操作，即使会话有权限也做不到。
 - 可选的 AI 摘要（Phase 2 之后再议）只处理已抽取的纯文本：无工具、无浏览器，失败即回退原文，输出只用于邮件文案，不参与「是否通知」的判断。
-- 上线自检：tools/check_redline.py 扫描 run_check.py、core/、adapters/，发现 agent CLI 调用或非白名单域名即失败；适配器每次改动经你人工看 diff 后才上线；同时检查生产配置的 URL 白名单不含 mock 站点地址（见 4.5）。
+- 上线自检：tools/check_redline.py 扫描 run_check.py、core/、adapters/，发现 agent CLI 调用或非白名单域名即失败；生产 URL 白名单不得包含 127.0.0.1（防止误指向本地服务）；适配器每次改动经你人工看 diff 后才上线。
 
 ## 2. 阶段总览
 
 | 阶段 | 内容 | 粗估工作量 | 退出标准 |
 |---|---|---|---|
 | Phase 0 | 修 v1 三个可靠性坑 + 任务计划程序调度 | 1–1.5 天 | 故障演练全部通过，无人值守连跑 3 天 |
-| Phase 1 | 自建测试 WEB（Docker 化 mock 站点）+ 适配器接口、统一 schema、SQLite 重构（仍是原 3 站） | 5–6.5 天（其中测试 WEB 含 Docker 环境 2–2.5 天） | mock E2E 全绿，新旧并行 3 天结果一致后切换 |
-| Phase 2 | 逐站实测公开可见性，按公告量依次接入（每站先进 mock） | 实测 1 天 + 每站 1.5–2.5 天 | 每站灰度 2 轮后正式启用 |
-| Phase 3 | 评估必须登录的站点（含登录与会话失效 mock） | 决策 0.5 天；实施每站 2–4 天，登录 mock 另加 0.5–1 天（可能不做） | 通过决策门才实施 |
+| Phase 1 | 适配器接口、统一 schema、SQLite 重构（仍是原 3 站）+ 真站标定回归 | 3–4 天 | 标定回归与夹具单测全绿，新旧并行 3 天结果一致后切换 |
+| Phase 2 | 逐站实测公开可见性，按公告量依次接入（每站先标定） | 实测 1 天 + 每站 1.5–2 天 | 每站灰度 2 轮后正式启用 |
+| Phase 3 | 评估必须登录的站点（会话流程用真站验证，不再建登录 mock） | 决策 0.5 天；实施每站 2–4 天 | 通过决策门才实施 |
 
 工作量是单人、熟悉现有代码的粗估，单位为有效工作日。每个阶段结束打 git tag，保留回滚点。
 
 ## 3. Phase 0：修 v1 可靠性 + 任务计划调度
 
-0.0 前置：凭据清理。若 README 里的明文账号密码尚未处理：先改密码和证书口令，仓库转私有，再清 git 历史（git filter-repo 或重建仓库）。同时补全.gitignore：data/、logs/、任何凭据文件。
+0.0 前置：凭据清理。若 README 里的明文账号密码尚未处理：先改密码和证书口令，仓库转私有，再清 git 历史（git filter-repo 或重建仓库）。同时补全 .gitignore：data/、logs/、任何凭据文件。（审阅清单 C1/C2：凭据仍在公开仓库历史中，按已泄露处理，改密码不能等清历史。）
 
 ### 0.1 修「邮件先落库」
 
@@ -72,7 +74,7 @@ else: write_local_alert(); sys.exit(2) # 保持未通知, 下一轮自动重试
 - 运行条件：仅当用户登录时运行（ego 是桌面应用，注销后无法运行，锁屏没问题）；允许唤醒计算机；错过后尽快运行；不并行启动新实例。
 - 上线前验证 ego 是否必须在登录会话中运行（决定「无论用户是否登录都运行」是否可用）；漏跑可见性靠日报的计划/实际轮次对比。
 - 失败处理：失败后 10 分钟重试，最多 2 次；任务时间上限 30 分钟。
-- 操作：程序填 conda 环境里 python 的绝对路径，参数 run_check.py，起始于 C:/work/ebid（v2 仓库根，见 4.1）；标准输出重定向到 data/logs/run_日期_时间.log，保留 30 天。
+- 操作：程序填 conda 环境里 python 的绝对路径，参数 run_check.py，起始于 C:/work/ebid（v2 仓库根）；标准输出重定向到 data/logs/run_日期_时间.log，保留 30 天。
 - 切换顺序：先暂停 Claude 应用里的 avc-agc-bid-watch，再启用新任务，避免双发和并发写 seen.json。
 
 ### 0.5 进程超时
@@ -87,7 +89,7 @@ subprocess.run(timeout) 只杀直接子进程。改为 Popen，超时后 taskkil
 3. 日报每天按时到达。
 4. 任务计划无人干预连续运行 3 天。
 
-说明：Phase 0 不依赖测试 WEB，演练 2 先用改错 URL 手工完成；测试 WEB 在 Phase 1 建好后，这四项演练会改写成可重复的自动化 E2E 用例（见 4.5）。
+说明：Phase 0 不依赖任何测试设施，演练 2 先用改错 URL 手工完成；这四项演练在 Phase 1 标定回归建成后改写为可重复的自动化用例。
 
 ## 4. Phase 1：适配器接口、统一 schema、SQLite
 
@@ -99,16 +101,15 @@ run_check.py # 薄入口
 core/ # Python: config, db, dedupe, runner, notify, report, keywords
 adapters/ # 每站一个适配器 (.mjs 浏览器站 /.py 静态站)
 _lib/common.mjs # 公共库: 导航白名单、等待、清洗、输出
-config/sites.json # 生产站点开关, space 名, 是否通知, 检查频率
-ebid-v2-mockweb/ # 测试 WEB 子目录: 规划文档 + 全部实现 (2026-10-24 已建成, 提交 1ae2229)
-  mockweb/ # 自建测试 WEB (见 4.5): app.py、sites/、scenarios/、Dockerfile、requirements.txt、.dockerignore
-  docker-compose.yml # mock-web (+ 可选 mailpit), 相对路径以本目录为根
-  config/sites.mock.json # 测试环境: 基址用 ${MOCK_BASE}; BID_ENV=mock 时 core/config.py 从此处加载
-  scripts/mock.cmd # up / mail / down / watch / logs / scenario 的封装
-  tests/ # unit/ (mock 单测) + fixtures/ (真站快照); e2e/ 随 Phase 1 core 补
-  .env.example .gitattributes # 真实 .env 不入库
+config/sites.json # 站点开关, space 名, 是否通知, 检查频率
 data/bid.db data/out/<站点>.json data/logs/ # 运行时数据
-tests/e2e/ tools/check_redline.py # e2e 挂架与红线自检属 Phase 1 core 工作, 在仓库根
+tests/
+  unit/ # 夹具单测: 解析/清洗/去重/门控 (不访问网络)
+  e2e/ # 真站标定回归 (pytest -m e2e, 访问真站, 见 4.5)
+  fixtures/ # 真站页面/接口快照 (录制一次, 回归与单测共用)
+  calibration/ # 每站标定定义: 查询参数 + 期望答案 (JSON)
+tools/check_redline.py
+ebid-v2-mockweb/ # [封存] 原 mockweb 实现与文档, 不再使用不删除
 ```
 
 - 国能E招这类静态站保留 Python 适配器，与浏览器适配器输出同一种 JSON，不为统一而重写。
@@ -120,15 +121,14 @@ tests/e2e/ tools/check_redline.py # e2e 挂架与红线自检属 Phase 1 core �
 { "site": "华电", "ok": true, "error": null, "session_state": "public",
 "raw_count": 20, "items": [ { "title": "…", "notice_type": "招标公告",
 "published_date": "2026-10-20", "url": "…", "native_id": "…",
-"deadline": "", "org": "", "project_no": "", "channel": "dom"}
-]}
+"deadline": "", "org": "", "project_no": "", "channel": "dom"} ]}
 ```
 
 ### 4.3 SQLite 表
 
 | 表 | 关键字段 |
 |---|---|
-| notices | id、site、native_id、title、title_norm、notice_type、published_date、url、deadline、org、project_no、first_seen |
+| notices | id、site、native_id、title、title_norm、notice_type、published_date、url、deadline、org、project_no、first_seen、matched_keywords |
 | runs | id、started_at、finished_at、result、mail_status |
 | site_runs | run_id、site、ok、error、raw_count、matched_count、new_count、session_state、duration_s |
 | site_state | site、consecutive_failures、last_ok_at、last_alert_at、last_nonzero_raw_at |
@@ -144,46 +144,56 @@ tests/e2e/ tools/check_redline.py # e2e 挂架与红线自检属 Phase 1 core �
 ### 4.4 迁移与测试
 
 - tools/import_seen.py：一次性导入 old/data/seen.json（v1 归档时已移入 old/，标为 legacy 已通知），导入后跑一次 --baseline，避免首轮重复通知。
-- pytest 覆盖：title_norm、dedupe_key、关键词正则、邮件落库门控（用假发送器）、国能E招 HTML 夹具解析。
+- pytest 单测覆盖（不访问网络）：title_norm、dedupe_key、关键词正则、邮件落库门控（用假发送器）、各站夹具解析（tests/fixtures/<站点>/ 下录制的 HTML/JSON）。
 - 关键词集中在 core/keywords.py：包含词、排除词；ASCII 词加边界，如 (?<![A-Za-z])AVC(?![A-Za-z])。关键词做成配置表：覆盖全称/简称（自动电压控制/自动发电控制）、全半角与大小写、业务关联叫法（调频、涉网等，按行业习惯补全）；标题与正文都匹配（§5.3 已抓正文）；notices 表记录命中词便于复盘；宁可误报不漏报；每月人工抽检一次——在各站内手工检索关键词，与监控命中结果比对，评估召回。
 - 新旧并行 3 天（旧入口保留为 run_check_v1.py，只演练不发信），比对条目集合，差异可解释后切换。
 
-### 4.5 自建测试 WEB（mock 站点）
+### 4.5 真站标定回归（本版核心，取代自建测试 WEB）
 
-完整规划已独立为 [ebid-v2-mockweb.md](ebid-v2-mockweb/ebid-v2-mockweb.md)（技术选型、compose 组织、接口与 token 约定、mock 对象与场景模式、Windows+Docker 注意事项、调试流程、各阶段接入、边界与安全）。要点：
+**原理**：真站历史公告不改写。选定一个历史时间窗（或关键词/类型组合），窗内公告集合固定；一次性人工核对窗内 AVC/AGC 公告，录制成「期望答案」；此后回归时适配器带同一组查询参数请求真站，断言抽取结果与期望一致。改版、字段映射回归、翻页、去重都能用同一套数据验证——而且验证的是真站本身，不存在「mock 与真站不一致」问题。
 
-- 本机 Docker（WSL2）里的 Flask mock 站点，127.0.0.1:18080 仅回环；公司策略禁用时退回裸跑 Flask。
-- 适配器开发、调试、回归全部对着 mock，真站只做 1–2 次冒烟；不把「mock 全绿」当「真站可用」。
-- E2E 强制启用 mailpit 并把 SMTP 指向它，通知断言落在收件上；agently 通道用开关模拟失败（演练 1 自动化的前提）。
-- /__admin/*、/__sink/* 带固定 token；生产白名单不含 mock 基址，生产路径不出现 docker 调用（check_redline.py 检查）。
+**各站标定手段（按站点自带查询能力选）**：
+
+| 站点 | 控制手段 | 标定示例 |
+|---|---|---|
+| 大唐 cdt-ec | more.jsp 发布时间起止（精确到秒），另有公告名称/采购单位/招标编号筛选 | 窗 2026-06-23 15:01:09 ~ 2026-08-25 19:53:34（边界取实际发布时间戳），窗内含【山西公司阳城电厂柳家河、照山光伏电站AGC、AVC、PMU升级改造】招标公告（2026-06-25 19:53:34）等已知公告 |
+| 犀维 cweme | getList 接口 startDate/endDate + messagetype/message_title（v1 已用） | 同上思路：选窗录制期望集 |
+| 华电 chdtp | 无时间参数；用 ggbt 关键词圈定（选一个只命中国家已知历史公告的词），或退化为结构断言 | 关键词「PMU升级改造」级别的长词，命中集小且稳定 |
+| 国能E招 | 静态站无查询：固定 URL 只断言结构与 raw_count>0；解析正确性靠夹具单测 | moreinfo/2/3 页正则抽取的结构断言 |
+
+**标定文件**：tests/calibration/<站点>.json —— 查询参数、期望条目（标题/native_id/日期/类型）、录制日期、期望 raw_count。夹具快照存 tests/fixtures/<站点>/（第一次录制时保存页面/接口原文，供单测离线复现）。
+
+**无法向真站点播的场景全部下沉到夹具单测**：empty / error5xx / timeout / layout_changed（改夹具副本的 DOM）/ truncated_titles / changed_notice / poisoned（投毒标题、非白名单链接）——在本地把夹具改坏来模拟，不依赖任何服务。
+
+**执行与频率**：pytest -m e2e 驱动；每站每轮 1–2 次请求，只在改适配器后与发布前各跑一次，访问量远低于人工浏览；开发期间用 dev-* 空间。浏览器站 E2E 前先探测 ego 就绪（ego-browser --version），缺则报错不静默跳过。
+
+**通知链路测试**（不依赖 mockweb）：SMTP 断言用本地 mailpit 单容器按需起（`docker run -d -p 127.0.0.1:18026:1025 -p 127.0.0.1:18025:8025 axllent/mailpit`，测试完即删）；agently 通道用环境开关禁用或替换为假 CLI，以演练「agently 与 SMTP 双失败」。
+
+**标定漂移的处理**：站点若改写/删除历史公告导致回归失败，先人工确认是站点行为还是适配器回归——这本身就是有价值的改版信号；确认后重录标定文件并在其中注明重录原因。
+
+**mockweb 处置**：ebid-v2-mockweb/ 目录封存（保留在仓库与 git 历史中，不再维护、不再纳入任何流程）；BID_ENV=mock、config/sites.mock.json、test-* 浏览器空间、compose/mailpit profile 等机制全部取消。
+
+### 4.6 Phase 1 验收
+
+- 全部单测绿；3 站标定回归各跑一次绿。
+- 从备份恢复 bid.db 演练一次成功。
+- 新旧并行 3 天条目一致后切换；旧入口转 run_check_v1.py 归档。
+
 ## 5. Phase 2：逐站实测与按量接入
 
 ### 5.1 先实测，再动手（约 1 天）
 
-用无痕窗口、不登录，逐站填表。实测对象共 9 站 = 8 个已注册平台（以 2026.10.23 凭据台账「黄标」8 行为准，文件在仓库根目录、受 gitignore 保护）+ 国能E招（v1 静态站，无账号）；大唐的公开采集通道为犀维网，与大唐同行评估。
+用无痕窗口、不登录，逐站填表。实测对象共 9 站 = 8 个已注册平台（以 2026.10.23 凭据台账「黄标」8 行为准，文件在仓库根目录、受 gitignore 保护）+ 国能E招（v1 静态站，无账号）；大唐的公开采集通道为犀维网，与大唐同行评估。实测表同前（略，见 docs/site_matrix.md）。
 
-| # | 平台 | 网址 | 公开列表可见 | 详情/附件需登录 | 站内搜索或接口 | 反爬形态 | 近 90 天相关公告数 | 发布节奏 |
-|---|---|---|---|---|---|---|---|---|
-| 1 | 华电 | chdtp.com | 待填 | 待填 | 待填 | 瑞数（v1 已知） | 待填 | 待填 |
-| 2 | 大唐（公开通道：犀维 cweme.cn） | cdt-ec.com | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 |
-| 3 | 中电设网 | cpeinet.com.cn | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 |
-| 4 | 国网ECP2.0 | ecp.sgcc.com.cn | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 |
-| 5 | 国网电工专区 | sgccetp.com.cn | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 |
-| 6 | 国能e购 | neep.shop | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 |
-| 7 | 华能 | ec.chng.com.cn | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 |
-| 8 | 国家电投 | ebid.espic.com.cn | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 |
-| 9 | 国能E招 | chnenergybidding.com.cn | 是（v1 已知） | 待填 | 无（v1 已知） | 无（静态站） | 待填 | 待填 |
+### 5.2 接入顺序与每站固定流程
 
-### 5.2 接入顺序
-
-按「公开可见 且 相关公告量大」优先，反爬越重越靠后。每站固定流程：
+按「公开可见 且 相关公告量大」优先，反爬越重越靠后：
 
 1. 在 dev-* 空间探索真站的页面与接口，访问量保持很小。
-2. 保存公开页面快照到 tests/fixtures/<站点>/，整理后在 mockweb/sites/<站点>/ 建对应的页面与接口（见 4.5）。
-3. 对着 mock 写适配器，补单测和 mock E2E 用例（含改版、空列表、报错等场景）。
-4. 对真站只做 1–2 次冒烟验证，确认 mock 与真站一致，尤其是反爬环节，不在真站上反复调试。
-5. 灰度：config/sites.json 中设 notify: false，只入库不发通知，观察 2 轮。
-6. 打开通知，正式启用。
+2. 保存公开页面/接口快照到 tests/fixtures/<站点>/，并按 §4.5 录制标定文件（查询参数 + 期望答案）。
+3. 对着夹具单测写适配器（离线），用标定回归验证（在线，1–2 次请求）。
+4. 灰度：config/sites.json 中设 notify: false，只入库不发通知，观察 2 轮。
+5. 打开通知，正式启用。
 
 范围变更（R1 的「8 平台全接入」改为按公告量实测决定、登录类默认不做）：未接入与暂缓站点维护在 docs/site_matrix.md 的「未覆盖清单」，每月人工巡检一次，让覆盖缺口可见；若 AVC/AGC 公告实测集中在登录类站点，回到 §6 决策门重评。
 
@@ -194,8 +204,6 @@ tests/e2e/ tools/check_redline.py # e2e 挂架与红线自检属 Phase 1 core �
 ### 5.4 频率
 
 频率基线（已接受，较需求 R5 的 ≤2h 放松）：每日 2 轮（08:30/14:30），最坏延迟 18h、平均约 7.5h=(6²+18²)/(2×24)。夜间空档是主因：若要压缩，08:30/12:30/16:30 最坏 16h，五点最坏 12h，达到 ≤2h 需每日 ≥12 轮且覆盖夜间——与并发预算、反爬、维护成本权衡后暂不做。临近截标的单站调高频率已留配置口子；触发点增减须同步修改任务计划。投标窗口通常是几天到几周，频率翻倍只增加反爬风险和资源占用。
-
-涉及文件：adapters/<站点>.mjs、config/sites.json、tests/fixtures/、docs/site_matrix.md（实测表）。
 
 ## 6. Phase 3：必须登录的站点（评估后再定）
 
@@ -221,29 +229,32 @@ tests/e2e/ tools/check_redline.py # e2e 挂架与红线自检属 Phase 1 core �
 - 已登录空间只允许访问适配器白名单 URL 前缀（见红线），适配器里不存在点击「报名 / 投标 / 提交」的函数。
 - 登录类适配器的任何改动都必须人工 review 后再上线。
 
-### 6.4 用 mock 测会话与登录流程
+### 6.4 会话与登录流程验证（不再建登录 mock）
 
-- 在测试 WEB 里提供登录页、图形验证码页和带 TTL 的会话 cookie（TTL 可配，例如 2 分钟），未登录或到期时跳转登录页。
-- 用它验证 sessionAlive 探测、会话失效后降级为公开采集并发出告警、scripts/relogin.mjs 的 handOff 流程，以及重新登录后下一轮自动恢复。
-- 真站的会话寿命（6.1 第 2 项）仍需实测，mock 的 TTL 只用来测流程，不代表真站。
-- 只在通过 6.1 决策门、确定要做登录类站点时才建这部分，预计 0.5–1 天。
+- sessionAlive 探测、会话失效后降级为公开采集并告警、relogin handOff、重登后自动恢复——全部在选定真站上低频验证（人在场、dev 空间旁路验证会话探测逻辑）；验证脚本复用标定回归的骨架。
+- 真站会话寿命按 6.1 第 2 项实测；不模拟假 TTL。
 
 ## 7. 风险与回滚
 
 | 风险 | 对策 |
 |---|---|
-| 站点改版导致适配器失效 | raw_count 为 0 告警 + 夹具单测，改版只改单个适配器 |
-| mock 与真站不一致，或无法复现瑞数反爬 | 每个新站对真站做 1–2 次冒烟；改版告警后重新录制快照并更新 mock；不把 mock 全绿当作真站可用 |
-| 测试 WEB 被误当生产，或暴露到局域网 | compose 端口映射显式绑定 127.0.0.1（Docker 默认绑定所有网卡）、按需启动，生产链路不依赖 Docker；生产白名单不含 mock 地址，由 check_redline.py 检查；test-* 空间与 bid-* 隔离 |
+| 站点改版导致适配器失效 | raw_count 为 0 告警 + 夹具单测 + 标定回归（改版本身也会让标定失败，双重信号）；改版只改单个适配器，随后重录夹具与标定 |
+| 站点改写/删除历史公告，标定漂移 | 回归失败先人工甄别「站点行为 vs 适配器回归」；确认后重录标定并注明原因（§4.5） |
+| 标定回归依赖网络与真站可用性 | 回归只在改适配器后/发布前跑，跑不了就顺延，不阻塞开发（开发主力是夹具单测，离线） |
+| 测试期间对真站的访问量 | 每站每轮 1–2 次请求 + 随机间隔，远低于人工浏览；开发探索在 dev-* 空间 |
+| 夹具/标定文件含敏感内容 | 只保存公开公告字段，不含任何账号、凭据 |
 | stdin 方式不支持跨文件 import | Phase 1 开头先 spike，备选拼接方案 |
 | 并行期新旧双发 | 旧入口只演练不发信；切换前暂停旧定时任务 |
-| ego 能力与文档描述不一致 | 本方案按文档描述假设成立，每项依赖 ego 的能力在对应阶段先小范围验证 |
-| 电脑关机或注销导致漏跑 | 任务计划「错过后尽快运行」+ 日报缺失即信号 |
+| ego 能力与文档描述不一致 | 每项依赖 ego 的能力在对应阶段先小范围验证 |
+| 电脑关机或注销导致漏跑 | 任务计划「错过后尽快运行」+ 日报计划/实际轮次 + watchdog |
 | ego 自动升级后 CLI 协议或行为变化 | 固定版本或延后升级；runs 表记录 ego 版本号；升级前先在 dev-* 空间验证再进生产 |
-| ego 任务空间数量超预算（bid-*/test-*/dev-* 随站点增长） | 临时空间 finish({keep:false}) 回收；空间清单写入日报观测 |
+| ego 任务空间数量超预算（bid-*/dev-* 随站点增长） | 临时空间 finish({keep:false}) 回收；空间清单写入日报观测 |
 
 回滚：每阶段一个 git tag；Phase 1 并行期保留 v1 入口；任一阶段出问题，可退回上一个 tag 并重新启用旧任务。回退到 v1 时，旧入口先跑一次 --baseline 重建 seen.json 再恢复正常调度，避免把 SQLite 里已通知的公告全部重发（import_seen 只有 v1→v2 方向，无反向导出）。
 
 ## 8. 建议的推进节奏
 
-先做 Phase 0（约 1–1.5 天）并跑满 3 天，再启动 Phase 1，并在 Phase 1 开头先搭好测试 WEB 骨架（约 2–2.5 天，含 Docker 环境），之后的适配器重构和每个新站点都对着它开发。Phase 2 开头的实测表建议在 Phase 1 进行期间并行完成，它决定后面接几个站、接哪些，也决定 Phase 3 要不要做。
+1. C1/C2（审阅清单仅存的人工事项）：改密码、转私有、清历史、收敛凭据副本——先做。
+2. Phase 0（1–1.5 天）跑满 3 天演练。
+3. Phase 1（3–4 天，无 Docker 依赖）：spike stdin import → SQLite/schema/适配器接口 → 录 3 站夹具与标定 → 单测与标定回归全绿 → 并行 3 天切换。
+4. Phase 2 开头实测表（决定接几个站、接哪些、Phase 3 要不要做）可在 Phase 1 期间并行完成。
