@@ -4,7 +4,7 @@
 
 **本版（2026-10-24 第二版）关键变化：放弃自建测试 WEB（mockweb），测试策略改为「真站标定查询 + 已知答案夹具」——利用各站自带的发布时间/关键词查询，用历史时间窗圈定一组固定不变的已知公告作为回归基准（§4.5）。** mockweb 相关内容（§4.5 原文、E2E 的 compose/mailpit profile、BID_ENV=mock、sites.mock.json、test-* 空间）全部取消；已建成的 ebid-v2-mockweb/ 目录封存不再维护。审阅清单中 E1–E6、B3 随方案作废；**A6（目录布局）是已解决而非作废**（§4.1 目录树已按实际更新）。C1/C2/C3 三项人工事项不变。
 
-**修订记录**：2026-10-24 当日三轮评审回写——第一轮（A/E 两类 14 项，提交 53e12cf）；第二轮（时间窗防漏/退出码分离/Phase 0 自洽/runner 重放/DPAPI 提前/窄窗验证等 11 项）；第三轮（本轮）：时间窗规则补齐（last_ok_at 前移条件、按窗长折算的页数上限+绝对上限 30 页、7 天回看上限、静态站漏跑加深翻页）、改版判据分站（时间窗站用 7 天宽窗+结构校验，安静日不误报）、内容变化只比 deadline（通道间标题截断不误判）、测试开关生产隔离（BID_NOW/agently 开关仅测试模式、--replay 强制临时 data 目录）、Phase 0 补 runs.jsonl 与原子写、watchdog 节流与成功定义、pending 合并去重、退出码 2/3 并存取 3；新增周金丝雀与本机桌面告警。第四轮（2026-10-26 外部终评回写）：迁移禁笼统 baseline、回滚改 export_seen 反向导出、新增 coverage_gaps 缺口表与 --backfill、通知状态机字段定案（dedupe_key 唯一索引/notified_at/last_notified_deadline）、并行期明确 V1 生产 V2 shadow、文件锁改字节锁、正文匹配统一移 Phase 2、灰度 ≥3 天且不补发历史、目标改可验证表述、schedule.json+sync_schedule.py 防调度漂移、工时上调（Phase 0 2–3 天/Phase 1 8–12 天）、凭据治理定为施工门禁。第五轮（2026-10-26 第二次外部评审回写）：统一 outbox 表（所有邮件类型共用「成功才确认」，撤销上轮「不预设」决定）、适配器 JSON Schema 严格契约（schema_version/必填枚举/时间三元组/单条隔离不静默/校验失败不推水位）、公告身份拆分 publisher/source_site（大唐官网与犀维跨源只通知一次）、agently 两段式成功谓词定案（两段 returncode+结构化 ok）、正文匹配试点改为全窗实测召回再定预筛、revision_hash 取代只比 deadline、超时预算端到端拆分并拆出宽窗+备份独立任务、红线收紧（扫描范围含 _lib 与 relogin、运行时 origin/路径/方法授权、邮件逐字段转义、投毒全链路测试）、金丝雀改全站轻检+深度轮换 ≤30 天、新增 §9 原需求追踪矩阵。
+**修订记录**：2026-10-24 当日三轮评审回写——第一轮（A/E 两类 14 项，提交 53e12cf）；第二轮（时间窗防漏/退出码分离/Phase 0 自洽/runner 重放/DPAPI 提前/窄窗验证等 11 项）；第三轮（本轮）：时间窗规则补齐（last_ok_at 前移条件、按窗长折算的页数上限+绝对上限 30 页、7 天回看上限、静态站漏跑加深翻页）、改版判据分站（时间窗站用 7 天宽窗+结构校验，安静日不误报）、内容变化只比 deadline（通道间标题截断不误判）、测试开关生产隔离（BID_NOW/agently 开关仅测试模式、--replay 强制临时 data 目录）、Phase 0 补 runs.jsonl 与原子写、watchdog 节流与成功定义、pending 合并去重、退出码 2/3 并存取 3；新增周金丝雀与本机桌面告警。第四轮（2026-10-26 外部终评回写）：迁移禁笼统 baseline、回滚改 export_seen 反向导出、新增 coverage_gaps 缺口表与 --backfill、通知状态机字段定案（dedupe_key 唯一索引/notified_at/last_notified_deadline）、并行期明确 V1 生产 V2 shadow、文件锁改字节锁、正文匹配统一移 Phase 2、灰度 ≥3 天且不补发历史、目标改可验证表述、schedule.json+sync_schedule.py 防调度漂移、工时上调（Phase 0 2–3 天/Phase 1 8–12 天）、凭据治理定为施工门禁。第五轮（2026-10-26 第二次外部评审回写）：统一 outbox 表（所有邮件类型共用「成功才确认」，撤销上轮「不预设」决定）、适配器 JSON Schema 严格契约（schema_version/必填枚举/时间三元组/单条隔离不静默/校验失败不推水位）、公告身份拆分 publisher/source_site（大唐官网与犀维跨源只通知一次）、agently 两段式成功谓词定案（两段 returncode+结构化 ok）、正文匹配试点改为全窗实测召回再定预筛、revision_hash 取代只比 deadline、超时预算端到端拆分并拆出宽窗+备份独立任务、红线收紧（扫描范围含 _lib 与 relogin、运行时 origin/路径/方法授权、邮件逐字段转义、投毒全链路测试）、金丝雀改全站轻检+深度轮换 ≤30 天、新增 §9 原需求追踪矩阵。第六轮（2026-10-26 第三次外部评审回写，一致性修订——评审结论：方案接近可施工，本轮后冻结功能范围进入施工）：shadow 切换 baseline 限定「有 V1 已发送证据的交集键」、V2-only 条目人工复核、有效项切换后补发、未解释差异不通过切换验收；outbox 行持久化完整邮件快照（subject/body/recipient/created_at）＋outbox_items 关联公告与 revision_hash，重试发同一快照不重拼；发送与写库收敛唯一组件，watchdog 不独立发信写库、经同一入口同一字节锁；seen 迁移建 legacy_seen_map 映射表，回滚导出优先用映射、无法映射进异常清单不静默造键；native_id 保留命名空间，跨源合并须实测同源或显式映射；revision_hash 宣称范围收敛为结构化字段，招标范围变化检测移 Phase 2 content_hash；09:40 补锁忙等待/顺延/幂等规则并从主轮删除备份预算；适配器输出带 run_id 防陈旧读并增 exhausted/page_limit_hit/stop_reason/pages_fetched；Phase 0 全量原子写＋无 Docker 自动化单测；runs 表补 run_mode/ego_version/code_version/config_hash/effective_options，SQLite 定 PRAGMA user_version/事务迁移/迁移前备份/各表保留策略；目录树补全施工产物（schedule.json、sync_schedule.py、import_seen/export_seen、site_matrix、doctor、runbook）并纳入验收；runner 自建 UTF-8 文件日志＋30 天清理，Phase 0 增预检 doctor 与 runbook（工时 3–4 天）。
 
 ## 1. 目标、范围、红线
 
@@ -22,7 +22,7 @@
 
 | 阶段 | 内容 | 粗估工作量 | 退出标准 |
 |---|---|---|---|
-| Phase 0 | 修 v1 三个可靠性坑 + 任务计划程序调度 | 2–3 天 | 故障演练全部通过（含强杀后锁恢复），无人值守连跑 3 天 |
+| Phase 0 | 修 v1 三个可靠性坑 + 任务计划程序调度 + 预检与运行手册 | 3–4 天 | 故障演练全部通过（含强杀后锁恢复），无人值守连跑 3 天 |
 | Phase 1 | 适配器接口、统一 schema、SQLite 重构（仍是原 3 站）+ 真站标定回归 | 8–12 天（含时间窗规则、隔离开关、覆盖缺口记录与补抓；并行观察 3 天另计，不占工作量） | 标定回归与夹具单测全绿，覆盖缺口流程演练通过，新旧并行 3 天（V1 生产/V2 shadow）一致后切换 |
 | Phase 2 | 逐站实测公开可见性，按公告量依次接入（每站先标定） | 实测 1 天 + 每站 1.5–2 天 | 每站灰度 ≥3 天（覆盖宽窗轮、夜间空档与故障注入）后正式启用 |
 | Phase 3 | 评估必须登录的站点（会话流程用真站验证，不再建登录 mock） | 决策 0.5 天；实施每站 2–4 天 | 通过决策门才实施 |
@@ -50,7 +50,7 @@ else: write_local_alert(); sys.exit(3) # 邮件双失败专用退出码, 保持�
 ```
 
 - agently 两段式调用（v1 实现见 old/run_check.py:129–142，两段都未检查 returncode、第二段靠子串匹配）成功谓词唯一定义：第一段 returncode==0 且输出含合法 ctk_ 确认令牌；第二段 returncode==0 且 JSON 结构化解析得 ok===true（非子串匹配）。任一不满足——非零退出、超时、无令牌、解析失败、ok≠true——一律「未确认」，不得标记已通知；「实际已发出但第二段超时」会重发一次，宁重勿漏。单测必须覆盖组合矩阵：返回码非零但输出含 ok / 返回码为零但无 ok / 有令牌但第二段失败。
-- 「成功才确认」的门控覆盖**所有**邮件类型，不只新公告——站点失败告警、恢复通知、日报、watchdog 告警同受约束。Phase 1 起落点为统一 outbox 表（§4.3）：每封邮件一行（message_type/status/attempts/sent_at/error），只有该行确认 sent 才允许更新对应状态（notices.notified_at、site_state.last_alert_at、日报已发标记）。本条要堵的洞：告警实际没发出，但 last_alert_at 已前移，随后被 24 小时节流吞掉，故障从此无人知晓。Phase 0 无库，告警类在 state.json 执行同等规则（发送失败不记 last_alert_at，下一轮照常重试）。
+- 「成功才确认」的门控覆盖**所有**邮件类型，不只新公告——站点失败告警、恢复通知、日报、watchdog 告警同受约束。Phase 1 起落点为统一 outbox 表（§4.3）：每封邮件一行（message_type/subject/body/recipient/status/attempts/sent_at/error——行即完整发送快照，重试原样重发不重拼），只有该行确认 sent 才允许更新对应状态（notices.notified_at、site_state.last_alert_at、日报已发标记）。本条要堵的洞：告警实际没发出，但 last_alert_at 已前移，随后被 24 小时节流吞掉，故障从此无人知晓。Phase 0 无库，告警类在 state.json 执行同等规则（发送失败不记 last_alert_at，下一轮照常重试）。
 - 取舍：若邮件实际已发出但响应解析失败，下一轮可能重复通知一次——宁重勿漏。
 - write_local_alert()：双通道都失败时，把待发公告与告警写入 data/alerts/pending.json（落盘是邮件链路全坏时的最后底牌），同时发一条 Windows 桌面通知（本机可见告警，人在电脑前时立刻知道）；下一轮启动时优先补发，未决告警同时夹带进日报。补发合并：pending.json 与「未落库公告下一轮重新判为新」两条路径会相遇，合并时按 dedupe_key 去重，每键只发一封，成功后才落库。
 - SMTP 授权码（备用通道凭据）Phase 0 即用 Windows DPAPI 加密存 data/secrets.dpapi（约十行代码，不必等 Phase 3），不进 git。
@@ -65,12 +65,12 @@ else: write_local_alert(); sys.exit(3) # 邮件双失败专用退出码, 保持�
 - ego 整体无产出（浏览器站全挂）→ 告警。
 - 站点恢复 → 发一封恢复通知。
 - 退出码：CLEAN / FOUND 为 0；WARN（站点连续失败等告警类）为 2；邮件双失败为 3——分码让任务计划日志能区分「站点问题」与「通知链路问题」。一轮里 2 与 3 同时出现取 3（邮件双失败优先：通知链路断了比站点故障更要紧，3 决定是否人工介入）。
-- 每轮结果追加写 data/runs.jsonl（时间、退出码、各站 ok/raw_count/命中数/新增数）——日报要的「计划/实际轮次、各站成功次数、抓取总数」从这里取。状态存 data/state.json（站点连续失败数、上次告警时间、全局 last_success_at——watchdog 用），写入用「临时文件 + os.replace」原子写，避免半截文件。Phase 1 两者并入 SQLite。
+- 每轮结果追加写 data/runs.jsonl（时间、退出码、各站 ok/raw_count/命中数/新增数）——日报要的「计划/实际轮次、各站成功次数、抓取总数」从这里取。状态存 data/state.json（站点连续失败数、上次告警时间、全局 last_success_at——watchdog 用）。原子写规则适用于**一切整体重写的运行时 JSON**（state.json、seen.json、pending.json）：一律「临时文件 + os.replace」，避免崩溃留下半截文件（runs.jsonl 为追加写，不在此列）。Phase 1 两者并入 SQLite。
 
 ### 0.3 补「心跳」
 
 - 每日固定一封日报（建议 08:30 那一轮结束后发），主题固定，无新公告也发。内容：各站 24 小时内成功次数、抓取总条数、新增数、最近一条相关公告的日期、计划轮次/实际成功轮次（漏跑可见）。
-- 独立 watchdog：再建一个不依赖 ego 的任务计划（每小时跑一次），仅检查「上一个应触发时刻过后 3 小时仍无成功运行」即发告警（同一告警 24 小时内不重复发）——不用固定 20 小时阈值（18h 正常空档加晚登录一小时就误报）。应触发时刻从 config/schedule.json 读（与任务计划触发器同一处定义），不硬编码在脚本里。「成功」= 退出码 0 或 2（站点有故障但编排完成了就算成功；退出 3 算未成功）。成功时间 Phase 0 取 data/state.json 的 last_success_at，Phase 1 起改由 runs 表推导。机器整体不可用时 watchdog 同样失效，最终兜底是「日报没到即人工介入」。外部 dead-man's switch 类服务与不上云约束冲突，不引入。
+- 独立 watchdog：再建一个不依赖 ego 的任务计划（每小时跑一次），仅检查「上一个应触发时刻过后 3 小时仍无成功运行」即发告警（同一告警 24 小时内不重复发）。watchdog **不独立发信、不直接写库**——发送与写库收敛到唯一组件：watchdog 任务调 run_check.py --watchdog，判定本身只读状态，告警经同一 outbox 路径发出；与主轮共用同一字节锁，抢锁失败=有轮次正在执行（主链路活着），本轮顺延下小时。——不用固定 20 小时阈值（18h 正常空档加晚登录一小时就误报）。应触发时刻从 config/schedule.json 读（与任务计划触发器同一处定义），不硬编码在脚本里。「成功」= 退出码 0 或 2（站点有故障但编排完成了就算成功；退出 3 算未成功）。成功时间 Phase 0 取 data/state.json 的 last_success_at，Phase 1 起改由 runs 表推导。机器整体不可用时 watchdog 同样失效，最终兜底是「日报没到即人工介入」。外部 dead-man's switch 类服务与不上云约束冲突，不引入。
 - 「没收到日报」本身就是系统异常的信号（任务计划挂了、电脑关机、邮件通道坏了）。不依赖云端 ping，符合「不上云」约束。
 
 ### 0.4 迁移到任务计划程序
@@ -80,24 +80,24 @@ else: write_local_alert(); sys.exit(3) # 邮件双失败专用退出码, 保持�
 - 运行条件：仅当用户登录时运行（ego 是桌面应用，注销后无法运行，锁屏没问题）；允许唤醒计算机；错过后尽快运行；不并行启动新实例。
 - 上线前验证 ego 是否必须在登录会话中运行（决定「无论用户是否登录都运行」是否可用）；漏跑可见性靠日报的计划/实际轮次对比。
 - 失败处理：不设任务计划层自动重试——重试语义在 runner 内部（邮件三连试 + 下一轮补发），任务计划层重试会整轮重跑、对反爬站点是成倍的额外访问；站点长期宕机由连续失败告警暴露。任务时间上限 45 分钟；预算不是「9 站 × 4 分钟」单因子，端到端最坏路径拆分与宽窗/备份独立任务见 §0.5。
-- 操作：程序填 conda 环境里 python 的绝对路径，参数 run_check.py，起始于 C:/work/ebid（v2 仓库根）；标准输出重定向到 data/logs/run_日期_时间.log，保留 30 天。
+- 操作：程序填 conda 环境里 python 的绝对路径，参数 run_check.py，起始于 C:/work/ebid（v2 仓库根）。任务计划直接运行 python、不经 shell，**不会自动做 stdout 重定向**——日志由 runner 自建：启动即配 UTF-8 文件日志写 data/logs/run_日期_时间.log（汇总轮内各子进程输出），每次启动顺带清理 30 天前旧日志；stdout/stderr 仍交给任务计划作排错辅路，不作日志依赖。
 - 切换顺序：先暂停 Claude 应用里的 avc-agc-bid-watch，再启用新任务，避免双发和并发写 seen.json。
 
 ### 0.5 进程超时
 
-subprocess.run(timeout) 只杀直接子进程。改为 Popen，超时后 taskkill /PID <pid> /T /F 清理整个进程树。超时预算按**端到端最坏路径**拆分——采集、宽窗、加深翻页、正文抓取、邮件三连试、SMTP 备用、备份都占同一轮时间：
+subprocess.run(timeout) 只杀直接子进程。改为 Popen，超时后 taskkill /PID <pid> /T /F 清理整个进程树。超时预算按**端到端最坏路径**拆分——采集、加深翻页、正文抓取、邮件三连试、SMTP 备用占同一轮时间（宽窗与备份已拆至 09:40 独立任务，见下条）：
 
-- 主轮（08:30/14:30）总超时 40 分钟（任务上限 45）＝采集 ≤28 分钟（分站 4 分钟，含加深翻页与正文抓取；超时跳过剩余站点并告警）＋通知尾部 ≥10 分钟（三连试固定等待约 3 分钟 + SMTP 备用 + 日报）＋备份 2 分钟。采集与通知抢时间时**通知优先**——采集全成功却在发信前被总超时杀掉，等于漏报一整轮。
-- 每日 7 天宽窗与 SQLite 备份（Phase 1 起）拆出主轮：09:40 独立任务（上限 45 分钟）跑宽窗 + VACUUM INTO + integrity_check，与主轮共用文件锁但错峰 70 分钟不相遇；宽窗失败走常规站点失败告警，不改变主轮退出码语义。
+- 主轮（08:30/14:30）总超时 40 分钟（任务上限 45）＝采集 ≤28 分钟（分站 4 分钟，含加深翻页与正文抓取；超时跳过剩余站点并告警）＋通知尾部 ≥12 分钟（三连试固定等待约 3 分钟 + SMTP 备用 + 日报）。备份已拆至 09:40 任务（见下条），不再占主轮预算。采集与通知抢时间时**通知优先**——采集全成功却在发信前被总超时杀掉，等于漏报一整轮。
+- 每日 7 天宽窗与 SQLite 备份（Phase 1 起）拆出主轮：09:40 独立任务（上限 45 分钟）跑宽窗 + VACUUM INTO + integrity_check，与主轮共用同一字节锁（§0.6），错峰 70 分钟正常不相遇；相遇时（主轮补跑、人工任务或手动轮超时）按锁规则处理：抢锁失败→每 5 分钟重试、累计等待 30 分钟；仍失败→本次顺延（写 runs，result=deferred），依赖任务计划「错过后尽快运行」当日补跑；当日始终未跑成→次日日报列为未决异常。幂等：宽窗重复命中由 dedupe_key 吸收、VACUUM INTO 目标带时间戳（文件已存在即换新时间戳重试），多次补跑不产生重复通知或重复备份。宽窗失败走常规站点失败告警，不改变主轮退出码语义。
 
 ### 0.6 手动监控（人工随时触发）
 
 - run_check.py 支持手动运行：默认跑完整一轮；`--site <站点>` 只查单站（Phase 1 适配器接口下天然支持），`--kw <关键词>` 追加临时关键词。结果打印到控制台。
 - 手动轮默认**不发邮件**：发现的新公告保持「待通知」，由下一轮定时任务正常送出（要立即送加 `--notify`）——同一套去重与落库，不会双发、不会吞公告。手动轮同样写 runs 记录，日报的「实际轮次」里标记 manual。
-- 互斥：定时任务与手动运行共用 data/run.lock，锁语义用 OS 自动释放的字节锁，而非「启动创建/正常退出删除」——文件残留式锁在强杀、崩溃、断电后永久阻断。实现：run.lock 常驻，启动时 msvcrt.locking(fd, LK_NBLCK) 锁首字节，抢不到即退出并提示「上一轮还在进行」；进程无论正常退出还是被杀，OS 都自动释放字节锁。任务计划的「不并行启动新实例」只管它自己，管不住手动跑；不防并发就会双发并抢写状态文件。
+- 互斥：主轮、09:40 任务、手动运行、watchdog 入口（§0.3）共用 data/run.lock，锁语义用 OS 自动释放的字节锁，而非「启动创建/正常退出删除」——文件残留式锁在强杀、崩溃、断电后永久阻断。实现：run.lock 常驻，启动时 msvcrt.locking(fd, LK_NBLCK) 锁首字节，抢不到即退出并提示「上一轮还在进行」；进程无论正常退出还是被杀，OS 都自动释放字节锁。任务计划的「不并行启动新实例」只管它自己，管不住手动跑；不防并发就会双发并抢写状态文件。
 - 用途：临近截标人工加查（与 §5.4 的配置调频互补，临时加查不必改配置）、改完适配器的即时验证、怀疑漏公告时的补查。Phase 1 起另有 --backfill --site <站点> --from <起> --to <止>：时间窗站按发布时间范围补抓（消除 §4.5 coverage_gaps 缺口的主要手段），结果走同一套去重与通知；列表站无时间参数，不支持 --backfill，只能人工站内补查。
 
-涉及文件：run_check.py（改）、data/state.json（新）、.gitignore（改）。
+涉及文件：run_check.py（改）、data/state.json（新）、config/schedule.json（新）、tools/sync_schedule.py（新）、tools/doctor.py（新）、docs/runbook.md（新）、.gitignore（改）。
 
 退出标准（故障演练）：
 1. 故意让 agently 和 SMTP 都失败：新公告不丢，恢复后下一轮补发。
@@ -105,8 +105,14 @@ subprocess.run(timeout) 只杀直接子进程。改为 Popen，超时后 taskkil
 3. 日报每天按时到达。
 4. 任务计划无人干预连续运行 3 天。
 5. 任务管理器强杀进行中的一轮后立即重跑：能正常获得锁、无残留阻断（验证字节锁随进程释放）。
+6. 施工产物核对：config/schedule.json、tools/sync_schedule.py（回读校验一致）、tools/doctor.py 全绿、docs/runbook.md、runner 自建文件日志与 30 天清理均已交付。
 
-说明：Phase 0 不依赖任何测试设施，演练 2 先用改错 URL 手工完成；这四项演练在 Phase 1 由 run_check.py --replay（读 data/out 夹具 + 假发送器，§4.4）改写为可重复的自动化用例。
+说明：Phase 0 不依赖任何测试设施，演练 2 先用改错 URL 手工完成；这四项演练在 Phase 1 由 run_check.py --replay（读 data/out 夹具 + 假发送器，§4.4）改写为可重复的自动化用例。但不等 Phase 1：无 Docker 的 pytest 单测在 Phase 0 即落地——假发送器门控（发送失败不落库）、pending 合并去重、原子写故障注入（预置半截 JSON，断言下次启动正常恢复），纯 Python 零服务依赖。
+
+### 0.7 预检与运行手册
+
+- tools/doctor.py（一条命令预检，任一项失败即非零退出）：python 与依赖可用、ego 就绪（--version 探测）、任务计划触发器 == schedule.json（复用 sync_schedule 的回读校验）、DPAPI 凭据可解密、data/ 所在盘余量、系统时区与时钟。启用任务、改配置、怀疑异常时先跑它。
+- docs/runbook.md（一页）：安装（conda 环境与依赖）、启用/暂停/改触发时点（改 schedule.json → sync → doctor）、手动跑一轮（§0.6）、日志位置与看法、备份恢复（Phase 1 起：停任务 → 用最近 VACUUM INTO 副本替换 → integrity_check → 重启）、常见故障对照（抢锁提示「上一轮还在进行」、邮件双失败、日报没来分别意味着什么——先跑 doctor）。
 
 ## 4. Phase 1：适配器接口、统一 schema、SQLite
 
@@ -114,18 +120,26 @@ subprocess.run(timeout) 只杀直接子进程。改为 Popen，超时后 taskkil
 
 ```
 ebid/ # 仓库根 C:/work/ebid
-run_check.py # 薄入口
+run_check.py # 薄入口: 主轮/手动/09:40 宽窗/watchdog 统一经此进锁
 core/ # Python: config, db, dedupe, runner, notify, report, keywords
 adapters/ # 每站一个适配器 (.mjs 浏览器站 /.py 静态站)
 _lib/common.mjs # 公共库: 导航白名单、等待、清洗、输出
 config/sites.json # 站点开关, space 名, 是否通知, 检查频率
-data/bid.db data/out/<站点>.json data/logs/ # 运行时数据
+config/schedule.json # 触发时点唯一事实来源 (§0.4, Phase 0)
+docs/site_matrix.md # 站点实测矩阵 + 未覆盖清单 (§5.1/§5.2, Phase 2 填充, Phase 1 建骨架)
+docs/runbook.md # 运行手册 (§0.7, Phase 0)
+tools/sync_schedule.py # schedule.json → 任务计划触发器同步 (Phase 0)
+tools/check_redline.py
+tools/doctor.py # 上线/排障预检 (§0.7, Phase 0)
+tools/import_seen.py # v1 seen 迁移导入, 含 legacy_seen_map 生成 (Phase 1)
+tools/export_seen.py # v2→v1 回退导出 (Phase 1)
+scripts/relogin.mjs # Phase 3 人工重登
+data/bid.db data/out/<run_id>/ data/alerts/ data/logs/ # 运行时数据
 tests/
   unit/ # 夹具单测: 解析/清洗/去重/门控 (不访问网络)
   e2e/ # 真站标定回归 (pytest -m e2e, 访问真站, 见 4.5)
   fixtures/ # 真站页面/接口快照 (录制一次, 回归与单测共用)
   calibration/ # 每站标定定义: 查询参数 + 期望答案 (JSON)
-tools/check_redline.py
 ebid-v2-mockweb/ # [封存] 原 mockweb 实现与文档, 不再使用不删除
 ```
 
@@ -144,33 +158,38 @@ ebid-v2-mockweb/ # [封存] 原 mockweb 实现与文档, 不再使用不删除
 
 **严格契约（不再只是示例）**：core/ 持有 adapters.schema.json（JSON Schema），runner 入口对适配器输出先校验后入库。顶层必填 schema_version（不识别即整站失败，防格式静默漂移）；item 必填 title、published_date、url 及 native_id（或可哈希替代）；notice_type、status、session_state 为枚举；时间字段存三元组「原始文本（*_raw）＋规范化值（ISO 8601）＋来源时区」，published_date/deadline 同规则，规范化失败的置空并计入 rejected 原因。单条 item 校验失败进 rejected[]（带原因）——不静默填默认值、不整站失败；JSON 解析不出或顶层结构缺失才算整站失败。任一校验异常的轮次**不推进覆盖水位**（coverage_from/to 与 last_ok_at 维持原值，§4.5）：坏数据上算不出可信窗口，fresh 判断与时间窗推进都以校验通过为前提。
 
+**输出传递与陈旧读防护**：适配器不写固定路径 data/out/<站点>.json——上一轮残留文件会被误当本轮结果。输出写 data/out/<run_id>/<站点>.json（run_id 由 runner 每轮生成并注入）或直接经 stdout 返回；runner 校验文件属于本轮 run_id，缺失、run_id 不匹配、修改时间早于本轮启动，一律按该站本轮失败处理，绝不消费陈旧输出。顶层另增必填翻页元数据：`exhausted`（是否翻页穷尽）、`page_limit_hit`、`stop_reason`、`pages_fetched`——§4.5 的 last_ok_at 前移与触顶判定依据这些显式字段，runner 不靠推测；一并纳入 adapters.schema.json 必填。
+
 ### 4.3 SQLite 表
 
 | 表 | 关键字段 |
 |---|---|
-| notices | id、publisher、source_site、native_id、title、title_norm、notice_type、published_date、url、sources（同公告多渠道链接）、deadline、org、project_no、status、first_seen、matched_keywords、dedupe_key（唯一索引）、notified_at、revision_hash、last_notified_revision |
-| runs | id、started_at、finished_at、result、mail_status |
+| notices | id、publisher、source_site、native_id、native_id_namespace（默认=source_site）、title、title_norm、notice_type、published_date、url、sources（同公告多渠道链接）、deadline、org、project_no、status、first_seen、matched_keywords、dedupe_key（唯一索引）、notified_at、revision_hash、last_notified_revision |
+| runs | id、started_at、finished_at、result（clean/warn/mail_fail/deferred 等）、run_mode（prod/replay/test）、trigger（main/manual/wide/watchdog）、mail_status、ego_version、code_version（git describe）、config_hash（生效配置摘要）、effective_options（本轮实际生效参数） |
 | site_runs | run_id、site、ok、error、raw_count、matched_count、new_count、session_state、duration_s、coverage_from、coverage_to |
 | site_state | site、consecutive_failures、last_ok_at、last_alert_at、last_nonzero_raw_at |
 | coverage_gaps | site、gap_from、gap_to、reason（漏跑/触顶/超 7 天截断）、detail、created_at、resolved_at（空=未决，日报持续列出直到补抓或人工标注解决） |
-| outbox | id、message_type（notice/alert/recovery/digest/watchdog）、ref（dedupe_key 或告警标识）、status（pending/sent/failed）、attempts、sent_at、error——所有邮件的唯一发送队列，「成功才确认」的落点 |
+| outbox | id、message_type（notice/alert/recovery/digest/watchdog）、subject、body（渲染完成的正文快照）、recipient、created_at、status（pending/sent/failed）、attempts、sent_at、error——所有邮件的唯一发送队列，「成功才确认」的落点。**行即快照**：创建时固化主题、正文、收件人（含本封覆盖哪些公告、依据哪个 revision_hash、日报覆盖哪个统计窗口），重试原样重发该快照，绝不按当前库状态重新拼装——重拼会把「当时该发的」换成「现在看着像该发的」 |
+| outbox_items | outbox_id、dedupe_key、revision_hash——一封公告邮件内含的公告与所依据版本；行确认 sent 后据此回写 notified_at 与 last_notified_revision |
 
-- dedupe_key = **publisher（公告主体）** + 类型 + (native_id 或 sha1(title_norm + 日期))——不再含采集渠道：同一公告同时出现在大唐官网 cdt-ec 与犀维 cweme（native_id 相同）时是一个键、只通知一次，后到的来源链接并入 sources；采集渠道视角由 source_site 与 site_runs 保留。publisher 由 sites.json 为每个采集站点映射（一个 publisher 可对应多个 source_site，大唐=官网+犀维即一例；国能各平台是否同主体同 id 在接入时实测确认，是则同规则合并，否则按平台拆 publisher）。native_id 优先（从 URL/接口提取，如犀维 gg_id、华电 onclick id，天然免疫标题截断），sha1 仅用于确无 id 的站点——截断标题去掉省略号后仍只是完整标题的前缀，两者哈希并不相等，不能当第一选择。dedupe_key 建唯一索引：撞键走更新路径（含通知状态机判断），不产生重复行。
+- dedupe_key = **publisher（公告主体）** + 类型 + (带命名空间的 native_id 或 sha1(title_norm + 日期))——不再含采集渠道：同一公告多渠道出现时是一个键、只通知一次，后到的来源链接并入 sources；采集渠道视角由 source_site 与 site_runs 保留。**native_id 必须带命名空间**（native_id_namespace，默认=source_site）：publisher 相同不证明各渠道 id 规则相同——同一公告跨源可能 id 不同（照旧重复通知），不同公告数字 id 撞车会被错误合并。跨源按裸 id 直接合并仅限**实测证明同 id 空间**的渠道对：接入同 publisher 的第二个渠道时，用一组已知公告对实测两侧 id 是否一致，结论记入 sites.json（same_id_space）；未证明的渠道对用显式 ID 映射表或退回 title_norm+日期哈希合并。publisher 由 sites.json 为每个采集站点映射（一个 publisher 可对应多个 source_site，大唐=官网+犀维即一例；国能各平台是否同主体同 id 在接入时实测确认，是则同规则合并，否则按平台拆 publisher）。native_id 优先（从 URL/接口提取，如犀维 gg_id、华电 onclick id，天然免疫标题截断），sha1 仅用于确无 id 的站点——截断标题去掉省略号后仍只是完整标题的前缀，两者哈希并不相等，不能当第一选择。dedupe_key 建唯一索引：撞键走更新路径（含通知状态机判断），不产生重复行。
 - title_norm：去掉省略号和空白、统一全半角，解决 v1 浏览器站标题被截断导致同条公告键不稳定的问题。
 - 变更公告的类型进入键，作为新事件通知（截止时间变更对投标很关键）。
 - notified_at 为空即待通知——这是 Phase 0.1 修复在数据层的通用化；用 sqlite3 标准库，写入走事务，避免 seen.json 的非原子写入问题。
 - 同键内容变化：dedupe 命中后比较 revision_hash（见通知状态机；含 deadline、status、org、project_no）——标题不参与（同一 native_id 在 dom 通道可能被截断、在 api 通道完整，标题哈希一变就误判「公告变更」，每日 7 天宽窗重读还会放大误重发）；标题层面的实质变化由「变更公告类型进入 dedupe_key」兜底。确需比对标题时只用规范化前缀比较、且限同一通道内。
-- 通知状态机：notified_at 为空=待通知，outbox 行确认 sent 后置时。变更检测不再只比 deadline：revision_hash = sha1(status + deadline + org + project_no + notice_type + native_id)，覆盖截止变更、终止/撤回/暂停（status 变化）、项目编号与采购单位变化，以及未伴随新公告的招标范围类修改；标题不参与哈希（截断差异防误判，见上条）。dedupe 命中且当前 revision_hash ≠ last_notified_revision 即信息变更——清空 notified_at 待重发（邮件主题标注「信息变更」），发送成功后更新 last_notified_revision；last_notified_deadline 字段被取代（deadline 已含在哈希内）。变更轨迹由 last_notified_revision + outbox + runs 可追溯。上一轮「outbox 表不预设」的决定按本轮评审撤销：outbox 为定案，它是所有邮件类型共用「成功才确认」的载体（§0.1）。
-- 库备份：不直接拷文件（WAL 未 checkpoint 时拷 .db 会丢最近写入，写入期间拷贝也可能得到损坏副本），只走 SQLite 自身机制——VACUUM INTO 'data/backup/bid_日期时间.db'（目标文件须不存在，得到压缩后的一致快照）或 sqlite3.Connection.backup()。每日宽窗任务（§0.5 拆分）成功后执行一次，滚动保留 14 份；备份后对副本跑 PRAGMA integrity_check；Phase 1 验收前做一次「从备份恢复」演练。WAL 非必需（单用户、单写入进程），不开。bid.db 是「已通知」状态的唯一事实来源，损坏等于全量重发或历史丢失。
-- 详情快照与全文检索 Phase 1 不做（§5.3 只匹配不入库），notices 表留扩展位（如 content_hash / body_path 列），需求 Q10 顺延。
+- 通知状态机：notified_at 为空=待通知，outbox 行确认 sent 后置时。变更检测不再只比 deadline：revision_hash = sha1(status + deadline + org + project_no + notice_type + native_id)，覆盖且仅覆盖这些结构化字段：截止变更、终止/撤回/暂停（status 变化）、项目编号与采购单位变化——正文与附件未入库，**招标范围类修改本阶段检测不到**，该能力属 Phase 2 正文/附件版本哈希（§4.3 扩展位 content_hash、§5.3），不在 Phase 1 宣称范围；标题不参与哈希（截断差异防误判，见上条）。dedupe 命中且当前 revision_hash ≠ last_notified_revision 即信息变更——清空 notified_at 待重发（邮件主题标注「信息变更」），发送成功后更新 last_notified_revision；last_notified_deadline 字段被取代（deadline 已含在哈希内）。变更轨迹由 last_notified_revision + outbox + runs 可追溯。上一轮「outbox 表不预设」的决定按本轮评审撤销：outbox 为定案，它是所有邮件类型共用「成功才确认」的载体（§0.1）。
+- 库备份：不直接拷文件（WAL 未 checkpoint 时拷 .db 会丢最近写入，写入期间拷贝也可能得到损坏副本），只走 SQLite 自身机制——VACUUM INTO 'data/backup/bid_日期时间.db'（目标文件须不存在，得到压缩后的一致快照）或 sqlite3.Connection.backup()。每日宽窗任务（§0.5 拆分）成功后执行一次，滚动保留 14 份；备份后对副本跑 PRAGMA integrity_check；Phase 1 验收前做一次「从备份恢复」演练。WAL 非必需（单用户；「单写入进程」由设计保证：主轮、09:40、手动、watchdog 全部经 run_check.py 同一入口、抢同一把字节锁，不存在并发写库的第二进程），不开。
+- Schema 版本与迁移：PRAGMA user_version 标记库结构版本；迁移在单事务内执行（失败整体回滚），执行前自动做一次 VACUUM INTO 迁移前备份；代码遇到高于自身已知版本的库拒绝启动（防旧代码写坏新库）。
+- 各表保留策略：runs/site_runs 保留 400 天（跨年对比与审计），outbox 已发送行保留 90 天（更早轨迹由每日备份与 notices.last_notified_revision 兜底），data/alerts 落盘文件 30 天；清理随 09:40 备份成功后顺带执行，误删可从备份恢复。bid.db 是「已通知」状态的唯一事实来源，损坏等于全量重发或历史丢失。
+- 详情快照与全文检索 Phase 1 不做（§5.3 只匹配不入库），notices 表留扩展位（content_hash / body_path 列）——Phase 2 用它做正文/附件版本哈希，检测招标范围类修改（Phase 1 的 revision_hash 不覆盖，见通知状态机）；需求 Q10 顺延。
 
 ### 4.4 迁移与测试
 
-- tools/import_seen.py：一次性导入 old/data/seen.json（v1 归档时已移入 old/，标为 legacy 已通知），负责键格式转换（v1 键 → v2 dedupe_key），无法机械转换的键打印清单人工处理，不静默丢弃。**迁移后禁止跑笼统 --baseline**——那会把切换窗口内新出现、本该通知的公告一并标为已处理。正确路径：导入后首轮差集（不在 seen.json 的新公告）按正常流程送出；个别确已人工处理过的用 --mark-notified <键> 显式标记。已知限制：v1 是「先落库后发信」，seen.json 里含邮件失败从未发出的键，从 v1 数据无法识别，记为 v1 既有损失。切换动作当天完成（停 V1 → 导入 → V2 首轮），压缩差集规模。
+- tools/import_seen.py：一次性导入 old/data/seen.json（v1 归档时已移入 old/，标为 legacy 已通知），负责键格式转换（v1 键 → v2 dedupe_key）。转换不靠猜测——v1 seen 无 native_id、标题可能已截断，「v1 键 → v2 native_id 键」与「v2 当前标题 → 原始 v1 标题哈希」都无法普遍成立。导入时逐条写 **legacy_seen_map 表（legacy_key ↔ notice_id/dedupe_key、match_status）**：能对上的记映射，对不上的记 unmatched；unmatched 键进异常清单人工处理，**不静默丢弃，也不静默生成一个看似合法的新键**。该映射表同时是回滚导出（§7）的依据。**迁移后禁止跑笼统 --baseline**——那会把切换窗口内新出现、本该通知的公告一并标为已处理。正确路径：导入后首轮差集（不在 seen.json 的新公告）按正常流程送出；个别确已人工处理过的用 --mark-notified <键> 显式标记。已知限制：v1 是「先落库后发信」，seen.json 里含邮件失败从未发出的键，从 v1 数据无法识别，记为 v1 既有损失。切换动作当天完成（停 V1 → 导入 → V2 首轮），压缩差集规模。
 - pytest 单测覆盖（不访问网络）：title_norm、dedupe_key、关键词正则、邮件落库门控（用假发送器）、各站夹具解析（tests/fixtures/<站点>/ 下录制的 HTML/JSON）。
 - runner 重放与故障注入：run_check.py --replay 读 data/out/ 夹具 + 假发送器，把 Phase 0 的演练 1/2（邮件双失败不丢公告、连续失败触发告警）变成自动化用例——只测编排逻辑，不访问网络、不依赖任何服务。
 - 关键词集中在 core/keywords.py：包含词、排除词；ASCII 词加边界，如 (?<![A-Za-z])AVC(?![A-Za-z])。关键词做成配置表：覆盖全称/简称（自动电压控制/自动发电控制）、全半角与大小写、业务关联叫法（调频、涉网等，按行业习惯补全）；Phase 1 只匹配标题（此阶段无正文抓取）；正文匹配与 match_source=body 属 Phase 2 §5.3 试点，届时再启用，相关测试一并随 Phase 2 落地；notices 表记录命中词便于复盘；宁可误报不漏报；每月人工抽检一次——在各站内手工检索关键词，与监控命中结果比对，评估召回。
-- 新旧并行 3 天：**V1 是生产通知方、V2 是 shadow**——V1 任务照常发信不变，V2 以 notify: false 运行（只抓取入库，「将通知清单」写入日报），比对两侧条目集合，差异可解释后切换。旧表述「V1 只演练不发信」废弃：那等于让未验收的 V2 提前承担生产通知，是灰度上线不是并行验证。切换顺序（既不吞件也不引发重发风暴）：V2 跑一次 --baseline 把 shadow 期累积的待通知显式标记为已处理（此刻它们都已由 V1 送过）→ 暂停 V1 任务 → V2 置 notify: true 成生产方，前两轮逐封核对。baseline 与 V1 停止之间由 V1 送出的少量公告 V2 可能重发一次——宁重勿漏，已接受。
+- 新旧并行 3 天：**V1 是生产通知方、V2 是 shadow**——V1 任务照常发信不变，V2 以 notify: false 运行（只抓取入库，「将通知清单」写入日报），比对两侧条目集合，差异可解释后切换。旧表述「V1 只演练不发信」废弃：那等于让未验收的 V2 提前承担生产通知，是灰度上线不是并行验证。切换顺序（既不吞件也不引发重发风暴）：**baseline 只对「有 V1 已发送证据的交集键」执行**——shadow 期 V2 待通知清单中，凡与 V1 同期实际发出的邮件对得上的键才标已处理（发送证据以 V1 发出的邮件为准，不能用 V1 seen.json——v1 先落库后发信，seen 含从未发出的键）。**V2-only 条目（V1 漏掉、只有 V2 发现的）禁止随 baseline 封存**：逐一人工复核，有效公告保持待通知、切换后照常送出（补发），无效或误报显式标注原因。存在未解释差异不得通过切换验收（§4.6）。顺序：差异比对与处置 → 交集键 baseline → 暂停 V1 任务 → V2 置 notify: true 成生产方，前两轮逐封核对。baseline 与 V1 停止之间由 V1 送出的少量公告 V2 可能重发一次——宁重勿漏，已接受。
 
 ### 4.5 真站标定回归（本版核心，取代自建测试 WEB）
 
@@ -179,7 +198,7 @@ ebid-v2-mockweb/ # [封存] 原 mockweb 实现与文档, 不再使用不删除
 **时间窗是统一参数（生产 24h / 测试 N×24h）**：凡站点自带发布时间查询（大唐 cdt-ec、犀维 cweme，及 Phase 2 多数平台），适配器生产运行一律按「发布时间 ∈ [start, now]」查询取数，不抓默认列表页。完整规则：
 
 - **窗口起点**：start = max(now − 7d 回看上限, min(now−24h, last_ok_at − 1h 重叠))——漏跑多轮自动补齐，但回看不无限拉长（超过 7 天的缺口不再自动追赶：写入 coverage_gaps、在日报「未决缺口」持续列出，直到人工 --backfill 补抓或标注解决——缺口未消每天都要报，不许只在日志里出现一次；同时防站点长期失败后窗口越滚越大）。
-- **last_ok_at 前移条件**：仅当本轮「翻页穷尽且未撞页数上限」时才前移到本轮窗口终点；触顶或翻页被截断则保持不动，下一轮从原位置重试。
+- **last_ok_at 前移条件**：仅当本轮「翻页穷尽且未撞页数上限」时才前移到本轮窗口终点；触顶或翻页被截断则保持不动，下一轮从原位置重试。穷尽与触顶由适配器显式元数据判定（exhausted / page_limit_hit / stop_reason / pages_fetched，§4.2），runner 不靠推测。
 - **翻页与页数上限**：翻到穷尽（下一页为空或短页即停）；页数上限按窗长折算（约每 24h 允许 5 页，宽窗按比例放大），另设绝对上限 30 页——撞任一上限即停、记「触顶」告警、不前移 last_ok_at（补跑和 7 天宽窗最容易超页，必须有上限而不是无限翻）。
 - **每日 7 天宽窗兜底**：09:40 独立任务（§0.5 拆分）对时间窗站点加跑一次 7 天宽窗，防窗口逻辑缺陷造成静默漏抓；重复命中由去重键吸收。
 
@@ -214,9 +233,10 @@ ebid-v2-mockweb/ # [封存] 原 mockweb 实现与文档, 不再使用不删除
 
 - 全部单测绿；3 站标定回归各跑一次绿。
 - 从备份恢复 bid.db 演练一次成功。
-- 新旧并行 3 天（V1 生产、V2 shadow）条目一致后按既定顺序切换；旧入口转 run_check_v1.py 归档。
+- 新旧并行 3 天（V1 生产、V2 shadow）差异**全部可解释**（无未解释差异残留）后按既定顺序切换：交集键 baseline、V2-only 人工复核完毕（§4.4）；旧入口转 run_check_v1.py 归档。
 - 覆盖缺口全流程演练一次：人为制造缺口（如临时把窗口起点改晚）→ 日报未决缺口出现 → --backfill 补抓 → 缺口标记解决。
 - 切换前用 tools/export_seen.py 生成一次 v2→v1 回退产物并抽查（只验证产出、不执行回退）。
+- 目录树（§4.1）所列 Phase 1 产物齐全：adapters.schema.json（含翻页元数据）、tools/import_seen.py（含 legacy_seen_map 生成）、tools/export_seen.py、docs/site_matrix.md 骨架（未覆盖清单 Phase 2 填充）。
 
 ## 5. Phase 2：逐站实测与按量接入
 
@@ -283,20 +303,21 @@ ebid-v2-mockweb/ # [封存] 原 mockweb 实现与文档, 不再使用不删除
 | 测试期间对真站的访问量 | 每站每轮 1–2 次请求 + 随机间隔，远低于人工浏览；开发探索在 dev-* 空间 |
 | 夹具/标定文件含敏感内容 | 只保存公开公告字段，不含任何账号、凭据 |
 | stdin 方式不支持跨文件 import | Phase 1 开头先 spike，备选拼接方案 |
-| 并行期新旧双发 | V1 生产、V2 shadow（notify: false）互不发包；切换按「V2 baseline → 停 V1 → 开 V2 通知」顺序执行 |
+| 并行期新旧双发 | V1 生产、V2 shadow（notify: false）互不发包；切换按「差异处置 → 交集键 baseline → 停 V1 → 开 V2 通知」顺序执行（§4.4） |
 | ego 能力与文档描述不一致 | 每项依赖 ego 的能力在对应阶段先小范围验证 |
 | 电脑关机或注销导致漏跑 | 任务计划「错过后尽快运行」+ 日报计划/实际轮次 + watchdog |
 | ego 自动升级后 CLI 协议或行为变化 | 固定版本或延后升级；runs 表记录 ego 版本号；升级前先在 dev-* 空间验证再进生产 |
 | ego 任务空间数量超预算（bid-*/dev-* 随站点增长） | 临时空间 finish({keep:false}) 回收；空间清单写入日报观测 |
 
-回滚：每阶段一个 git tag；Phase 1 并行期保留 v1 入口；任一阶段出问题，可退回上一个 tag 并重新启用旧任务。回退到 v1 不再用 --baseline 重建 seen.json——那会吞掉 V2 里待通知的公告，且 v1/v2 去重键格式不同。改用 tools/export_seen.py 反向导出：从 bid.db 取 notified_at 非空的键，按 v1 seen.json 格式重建（含键格式反向转换）；notified_at 为空的待通知项不写入 seen.json——v1 首轮会把它们判为新公告正常送出（自动补发，宁重勿漏）。已知限制：回退仅覆盖原 3 站，V2 期间新接入站点的监控随回退暂停（可用 §0.6 手动轮顶）；信息变更类（revision_hash 变化）公告在 v1 中会作为新键再发一次，属可接受重复。
+回滚：每阶段一个 git tag；Phase 1 并行期保留 v1 入口；任一阶段出问题，可退回上一个 tag 并重新启用旧任务。回退到 v1 不再用 --baseline 重建 seen.json——那会吞掉 V2 里待通知的公告，且 v1/v2 去重键格式不同。改用 tools/export_seen.py 反向导出：从 bid.db 取 notified_at 非空的键，优先经 legacy_seen_map 映射还原原 v1 键（§4.4 导入时保存），映射缺失的 V2 期间新键按 v1 键规则生成，无法可靠转换的进异常清单人工处理——**不静默生成看似合法的新键**；notified_at 为空的待通知项不写入 seen.json——v1 首轮会把它们判为新公告正常送出（自动补发，宁重勿漏）。已知限制：回退仅覆盖原 3 站，V2 期间新接入站点的监控随回退暂停（可用 §0.6 手动轮顶）；信息变更类（revision_hash 变化）公告在 v1 中会作为新键再发一次，属可接受重复。
 
 ## 8. 建议的推进节奏
 
 1. C1/C2（审阅清单仅存的人工事项）：改密码、转私有、清历史、收敛凭据副本——先做，且为施工门禁（未完成不进入 0.1 及之后任何施工）。
-2. Phase 0（2–3 天）跑满 3 天演练。
+2. Phase 0（3–4 天）跑满 3 天演练。
 3. Phase 1（8–12 个有效工作日，无 Docker 依赖；并行观察 3 天另计）：spike stdin import → SQLite/schema/适配器接口（含时间窗规则、测试隔离开关、覆盖缺口记录与 --backfill）→ 录 3 站夹具与标定 → 单测与标定回归全绿 → 并行 3 天（V1 生产/V2 shadow）后按序切换。
 4. Phase 2 开头实测表（决定接几个站、接哪些、Phase 3 要不要做）可在 Phase 1 期间并行完成。
+5. 第六轮为一致性修订与交付清单冻结；按评审结论停止泛化评审、进入施工。Phase 1 开工前三件定稿——outbox 快照结构、适配器运行契约（run_id + 翻页元数据）、legacy_seen_map——已在本文定案，施工中变更走 git 提交记录。
 
 ## 9. 原需求追踪矩阵（阶段完成 ≠ 原需求全部完成）
 
