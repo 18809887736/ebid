@@ -1,0 +1,85 @@
+%%{init: {"theme": "base", "themeVariables": {"fontFamily": "Microsoft YaHei, sans-serif", "primaryColor": "#eef4fb", "lineColor": "#555"}}}%%
+flowchart TB
+  classDef prod fill:#e8f1ff,stroke:#2b6cb0,stroke-width:2px,color:#1a365d
+  classDef store fill:#e9f9ef,stroke:#2f855a,color:#22543d
+  classDef site fill:#fff7e6,stroke:#c05621,stroke-width:2px,color:#7b341e
+  classDef test fill:#fdf0f7,stroke:#97266d,color:#702459
+  classDef legacy fill:#fdf6e3,stroke:#b58900,stroke-width:2px,color:#7b5c00
+  classDef dead fill:#f1f1f1,stroke:#999,stroke-dasharray:5 5,color:#777
+
+  subgraph SCHED["调度（schedule.json 三类时点 · doctor 校验一致）"]
+    TS["任务计划 main<br/>08:30 / 14:30"]:::prod
+    TW["任务计划 wide<br/>09:40 · 上限 80min<br/>7 天宽窗 + VACUUM INTO 备份"]:::prod
+    WD["任务计划 watchdog<br/>每小时 · 不依赖 ego<br/>应触发+3h 无成功 → 告警"]:::prod
+  end
+
+  LOCK[("run.lock 字节锁<br/>记 pid/trigger · 进程死自动释放<br/>定时类等 20min→deferred(exit 4)<br/>manual 立败")]:::store
+
+  subgraph PROD["生产 worktree C:/work/ebid-prod（只检出 tag · 脏树拒跑）"]
+    RC["run_check.py 统一入口<br/>分站 4min · 主轮 40min · taskkill 清树<br/>退出码 0/2/3/4 · UTF-8 文件日志"]:::prod
+    CM["core/ config·db·dedupe·keywords<br/>runner·notify·report"]:::prod
+    RC --- CM
+  end
+
+  subgraph ADPT["适配器（每站一文件 · 统一 JSON 约定 · 翻页元数据必填）"]
+    AGN["国能E招 .py<br/>urllib 静态列表"]:::prod
+    AMJ["华电 / 犀维 .mjs<br/>ego-browser nodejs<br/>bid-* 生产空间"]:::prod
+  end
+
+  subgraph DATA["数据"]
+    DB[("bid.db（4 张表）<br/>notices: dedupe_key 唯一 + notified_at 门控<br/>只比 deadline 判变更<br/>runs / site_runs / site_state")]:::store
+    SJ[("state.json · runs.jsonl（原子写）<br/>last_success_at 仅 main+prod+全站+0/2")]:::store
+  end
+
+  subgraph WEB["真站"]
+    S1["国能E招"]:::site
+    S2["华电 chdtp.com<br/>瑞数 / iframe"]:::site
+    S3["大唐 cdt-ec / 犀维 cweme.cn<br/>时间窗 start=max(now−7d, min(now−24h, last_ok_at−1h))<br/>穷尽才推水位 · 触顶告警"]:::site
+  end
+
+  TS --> RC
+  TW --> RC
+  WD -->|"只读状态"| RC
+  RC --- LOCK
+  RC --> AGN --> S1
+  RC --> AMJ --> S2
+  AMJ --> S3
+  RC --> DB
+  RC --> SJ
+  CM -->|"发送成功才落库<br/>agently 两段谓词→SMTP 备用<br/>双失败: pending.json+桌面通知+exit 3"| M["邮件 / 日报（轮次对比·未决缺口）"]:::store
+
+  subgraph SWITCH["并行与切换（runbook 三步）"]
+    V1["V1 生产照常发信"]:::legacy
+    V2["V2 shadow notify:false<br/>日报列将通知清单"]:::legacy
+    V1 -.->|"人工比对 3 天 → 导入 → 核清单 → 开 notify"| V2
+  end
+
+  subgraph DEVT["开发树 C:/work/ebid（人在场 · AI 不进生产链路）"]
+    AI["Claude Code"]:::test
+    DEV["dev-* 空间小流量探索"]:::test
+    FIX["tests/fixtures/<br/>页面快照 + replay/ 输出夹具"]:::test
+    UNIT["单测（离线无 Docker）<br/>门控/合并/原子写/口径<br/>空/错/改版/截断/投毒全链路"]:::test
+    CAL["calibration/<br/>时间窗+期望答案<br/>BID_NOW 注入验证窄窗"]:::test
+    E2E["标定回归 pytest -m e2e<br/>改适配器后+发布前必跑<br/>临时 data+假发送+dev-*"]:::test
+    MP["进程内假 SMTP"]:::test
+    CHK["check_redline.py<br/>无 Agent CLI·白名单·禁 127.0.0.1"]:::test
+    DOC["doctor.py · runbook.md<br/>spike: stdin import + 容量定标"]:::test
+    MAN["手动轮 --site/--kw/--from"]:::test
+  end
+
+  AI --> AMJ
+  AI --> AGN
+  AI --> DEV
+  DEV --> S1
+  DEV --> S2
+  DEV --> S3
+  AI -->|"录制"| FIX
+  FIX --> UNIT
+  CAL --> E2E
+  E2E -.-> AGN
+  E2E -.-> AMJ
+  MAN --> RC
+  CHK -.->|"上线前"| RC
+  DOC -.-> SCHED
+
+  MOCK["ebid-v2-mockweb/（封存）"]:::dead
