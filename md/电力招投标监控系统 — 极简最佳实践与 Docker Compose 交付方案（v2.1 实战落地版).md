@@ -1,6 +1,6 @@
 # 电力招投标监控系统 — 极简最佳实践与 Docker Compose 交付方案（v2.1 实战落地版）
 
-> **版本状态**：2026-10-29 修订（合并《极简方案分析与 sites 适配器落地记录》）
+> **版本状态**：2026-10-29 修订 2（合并《极简方案分析与 sites 适配器落地记录》；将 chnenergy/cdt_ec/chdtp 三站适配器修正回 old/ 实测契约；storage/main 新增穿透负缓存 pen_seen 与轮次异常兜底）
 > **核心目标**：以最低的单人维护成本，全天候可靠、不漏地监控各大电力集团的 **AVC / AGC（自动电压控制 / 自动发电控制）** 招标与采购公告，并推送至个人邮箱。
 > **设计哲学**：100% 免密公开源采集 + 单容器 All-in-One 封装 + SQLite 单表自愈状态机 + 源码热挂载（改代码免重新构建镜像）。
 
@@ -152,8 +152,8 @@ keywords:
     - "办公家具"
 
 sites:
-  chnenergy: { name: "国能E招", enabled: true, url: "https://www.chnenergybidding.com.cn" }
-  cdt_ec:    { name: "大唐集团电商(犀维)", enabled: true, url: "http://www.cdt-ec.com" }
+  chnenergy: { name: "国能E招", enabled: true, url: "http://www.chnenergybidding.com.cn" }
+  cdt_ec:    { name: "大唐集团电商(犀维)", enabled: true, url: "https://www.cweme.cn" }
   chdtp:     { name: "华电集团电商", enabled: true, url: "https://www.chdtp.com" }
   sgcc:      { name: "国家电网ECP2.0", enabled: false, url: "https://ecp.sgcc.com.cn" }
   neep:      { name: "国家能源e购", enabled: false, url: "http://www.neep.shop" }
@@ -165,7 +165,7 @@ sites:
 
 ## 四、 核心代码全集
 
-### 1. `src/storage.py`（单表状态机 + 漏跑补齐状态槽 + 物理关连接）
+### 1. `src/storage.py`（单表状态机 + 漏跑补齐状态槽 + 穿透负缓存 + 物理关连接）
 ```python
 import sqlite3
 import hashlib
@@ -210,6 +210,14 @@ def init_db():
                 updated_at TEXT DEFAULT (datetime('now', 'localtime'))
             )
         """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS pen_seen (
+                site_key TEXT NOT NULL,
+                item_key TEXT NOT NULL,
+                seen_at TEXT DEFAULT (datetime('now', 'localtime')),
+                PRIMARY KEY (site_key, item_key)
+            )
+        """)
 
 def is_slot_done_today(slot_time: str, today_str: str) -> bool:
     with get_conn() as conn:
@@ -225,6 +233,17 @@ def mark_slot_done(slot_time: str, today_str: str):
                 last_run_date = excluded.last_run_date,
                 updated_at = datetime('now', 'localtime')
         """, (slot_time, today_str))
+
+def is_penetrated(site_key: str, item_key: str) -> bool:
+    """穿透负缓存：已拉过正文且未命中的条目不再重复穿透"""
+    with get_conn() as conn:
+        return conn.execute(
+            "SELECT 1 FROM pen_seen WHERE site_key = ? AND item_key = ?", (site_key, item_key)
+        ).fetchone() is not None
+
+def mark_penetrated(site_key: str, item_key: str):
+    with get_conn() as conn:
+        conn.execute("INSERT OR IGNORE INTO pen_seen (site_key, item_key) VALUES (?, ?)", (site_key, item_key))
 
 def make_dedupe_key(site: str, notice_type: str, native_id: str, title: str, pub_date: str) -> str:
     ident = native_id.strip() if native_id else hashlib.sha1(f"{title.strip()}_{pub_date}".encode()).hexdigest()[:16]
@@ -351,7 +370,7 @@ def render_notices_html(items: list[dict]) -> str:
     </table>"""
 ```
 
-### 3. `src/sites.py`（两级穿透接口 + 3 站移植 + 国网拦截 + 离线自检）
+### 3. `src/sites.py`（两级穿透接口 + 3 站实测移植 + 国网拦截草稿 + 离线自检）
 ```python
 import re
 import logging
@@ -367,46 +386,38 @@ except ImportError:
 logger = logging.getLogger("ebid")
 
 # =====================================================================
-# 1. 国能E招 (chnenergybidding.com.cn) — 移植自 old/run_check.py check_guoneng
+# 1. 国能E招 (chnenergybidding.com.cn) — old/run_check.py check_guoneng 实测移植
+#    实测 URL 形如 /bidweb/001/{cat}/{页码}/{8位日期}/{uuid}.html，日期取自路径段；
+#    三个分类(含变更公告) × 前 3 页，与 old/ 抓取范围一致
 # =====================================================================
-GN_BASE = "https://www.chnenergybidding.com.cn"
-GN_CATS = [
-    ("招标公告", "/bidweb/001/001002/moreinfo.html"),
-    ("非招标公告", "/bidweb/001/001003/moreinfo.html"),
-]
+GN_BASE = "http://www.chnenergybidding.com.cn"
+GN_CATS = {"001002": "招标公告", "001003": "非招标公告", "001004": "变更公告"}
 
-def _gn_row_re(cat_label: str) -> re.Pattern:
+def _gn_row_re(cat: str) -> re.Pattern:
     return re.compile(
-        r'<a[^>]+href=["\'](?P<href>/bidweb/\d+/\d+/\d+/[0-9a-fA-F\-]+\.html)["\'][^>]*title=["\'](?P<title>[^"\']+)["\'][^>]*>.*?'
-        r'(?P<date>20\d{2}-\d{2}-\d{2})',
-        re.S
+        r'href="(/bidweb/001/' + cat + r'/\d+?/(\d{8})/([0-9a-f\-]+)\.html)"[^>]*title="([^"]+)"'
     )
 
 def _chnenergy_list(ctx) -> list[dict]:
     if httpx is None:
         raise RuntimeError("httpx 未安装")
     items = []
-    seen = set()
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/130.0.0.0 Safari/537.36"}
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36"}
     with httpx.Client(base_url=GN_BASE, headers=headers, timeout=25.0, follow_redirects=True) as client:
-        for notice_type, path in GN_CATS:
-            resp = client.get(path)
-            resp.raise_for_status()
-            pattern = _gn_row_re(notice_type)
-            for m in pattern.finditer(resp.text):
-                href = m.group("href")
-                nid = href.rsplit("/", 1)[-1].replace(".html", "")
-                if nid in seen:
-                    continue
-                seen.add(nid)
-                items.append({
-                    "native_id": nid,
-                    "title": m.group("title").strip(),
-                    "notice_type": notice_type,
-                    "pub_date": m.group("date"),
-                    "deadline": "",
-                    "url": urllib.parse.urljoin(GN_BASE, href),
-                })
+        for cat, notice_type in GN_CATS.items():
+            for page in ("moreinfo.html", "2.html", "3.html"):
+                resp = client.get(f"/bidweb/001/{cat}/{page}")
+                resp.raise_for_status()
+                for m in _gn_row_re(cat).finditer(resp.text):
+                    path, ymd, nid, title = m.groups()
+                    items.append({
+                        "native_id": nid,
+                        "title": title.strip(),
+                        "notice_type": notice_type,
+                        "pub_date": f"{ymd[:4]}-{ymd[4:6]}-{ymd[6:]}" if len(ymd) == 8 else "",
+                        "deadline": "",
+                        "url": urllib.parse.urljoin(GN_BASE, path),
+                    })
     return items
 
 def _chnenergy_detail(ctx, item: dict) -> str:
@@ -424,121 +435,125 @@ def _chnenergy_detail(ctx, item: dict) -> str:
 
 
 # =====================================================================
-# 2. 大唐集团/犀维 (cweme.cn / cdt-ec.com) — 移植自 old/scripts/check_chd_cweme.mjs
+# 2. 大唐集团/犀维 (cweme.cn) — old/scripts/check_chd_cweme.mjs checkCweme 实测移植
+#    实测接口: POST /cweme-index/indexController/getList
+#    (messagetype 0/1/4 + message_title + limit/page)，字段 message_title/publish_time/deadline，
+#    详情页 zbggDetail.jsp / fzbggDetail.jsp?id={gg_id}
 # =====================================================================
-CWEME_PAGE_URL = "https://www.cweme.cn/html/portal/search/list.html"
-CWEME_API_URL = "https://www.cweme.cn/ec/getList"
+CWEME_PAGE_URL = "https://www.cweme.cn/cweme-index/webpage/jsp/zbggList.jsp"
+CWEME_API_URL = "https://www.cweme.cn/cweme-index/indexController/getList"
+CW_TYPES = {"0": "招标公告", "1": "变更公告", "4": "非招标公告"}
 
 def _cdt_ec_list(ctx) -> list[dict]:
+    items = []
     page = ctx.new_page()
     try:
-        page.goto(CWEME_PAGE_URL, wait_until="domcontentloaded", timeout=35000)
-        resp = ctx.request.post(
-            CWEME_API_URL,
-            form={"page": "1", "rows": "50", "gg_type": "1"},
-            timeout=25000
-        )
-        data = resp.json()
-        rows = data.get("rows") or data.get("data") or []
-        items = []
-        for r in rows:
-            nid = str(r.get("gg_id") or r.get("id") or "").strip()
-            title = str(r.get("gg_name") or r.get("title") or "").strip()
-            if not (nid and title):
-                continue
-            items.append({
-                "native_id": nid,
-                "title": title,
-                "notice_type": str(r.get("gg_type_name") or "招标公告"),
-                "pub_date": str(r.get("publish_time") or r.get("create_time") or "")[:10],
-                "deadline": str(r.get("end_time") or "")[:16],
-                "url": f"https://www.cweme.cn/html/portal/search/detail.html?id={nid}",
-            })
+        # 先开列表页拿会话 Cookie，再用 ctx.request 复用 Cookie 调接口（等价 old 的 page.fetch）
+        page.goto(CWEME_PAGE_URL, timeout=45000)
+        try:
+            page.wait_for_load_state("networkidle", timeout=20000)
+        except Exception:
+            pass
+        for mt, typename in CW_TYPES.items():
+            resp = ctx.request.post(CWEME_API_URL, form={
+                "limit": "30", "page": "1", "messagetype": mt, "message_title": "",
+                "bid_tenderer": "", "message_no": "", "pro_bidding_mothod": "",
+                "startDate": "", "endDate": "",
+            }, timeout=15000)
+            if resp.status != 200:
+                raise RuntimeError(f"犀维 getList HTTP {resp.status} messagetype={mt}")
+            for g in resp.json().get("data", []):
+                nid = str(g.get("gg_id") or g.get("id") or "").strip()
+                if not nid:
+                    continue
+                detail_jsp = "zbggDetail" if mt in ("0", "1") else "fzbggDetail"
+                items.append({
+                    "native_id": nid,
+                    "title": str(g.get("message_title") or "").strip(),
+                    "notice_type": typename,
+                    "pub_date": str(g.get("publish_time") or "")[:10],
+                    "deadline": str(g.get("deadline") or "")[:10],
+                    "url": f"https://www.cweme.cn/cweme-index/webpage/jsp/{detail_jsp}.jsp?id={nid}",
+                })
         return items
     finally:
         page.close()
 
 def _cdt_ec_detail(ctx, item: dict) -> str:
-    page = ctx.new_page()
+    if BeautifulSoup is None:
+        return ""
     try:
-        page.goto(item["url"], wait_until="networkidle", timeout=30000)
-        return page.locator("body").inner_text()
+        resp = ctx.request.get(item["url"], timeout=20000)
+        if resp.status != 200:
+            return ""
+        return BeautifulSoup(resp.text(), "html.parser").get_text(" ", strip=True)
     except Exception as e:
         logger.warning(f"[cdt_ec] 详情抓取失败 {item.get('url')}: {e}")
         return ""
-    finally:
-        page.close()
 
 
 # =====================================================================
-# 3. 华电集团 (chdtp.com) — 移植自 old/ #iframepage4 注入方案 + 空ggbt自动回退
+# 3. 华电集团 (chdtp.com) — old/checkChd 实测移植：
+#    入口页为实测可用的 caigou.jsp?cgtype=4（页面含 #iframepage4），
+#    注入 /webs/queryWebZbgg.action 查询；空 ggbt 拉全量，失败自动降级站内搜索
 # =====================================================================
-CHD_HOME_URL = "https://www.chdtp.com/pages/wzglS/zbgg/zbgg.jsp"
-_CHD_ONCLICK_RE = re.compile(r"toDetail\(['\"](?P<id>[^'\"]+)['\"]")
+CHD_PAGE_URL = "https://www.chdtp.com/pages/wzglS/cgxx/caigou.jsp?cgtype=4"
+CHD_QUERY_URL = "/webs/queryWebZbgg.action?zbggType=1&ggbt="
 
-def _extract_chdtp_id(onclick_str: str) -> str:
-    m = _CHD_ONCLICK_RE.search(onclick_str or "")
-    return m.group("id") if m else ""
+def _chd_native_id(onclick: str) -> str:
+    m = re.search(r"\d{4,}", onclick or "")
+    return m.group(0) if m else ""
 
-def _chdtp_query_iframe(page, ggbt: str = "") -> list[dict]:
-    encoded_kw = urllib.parse.quote(ggbt)
-    target_src = f"/webs/queryWebZbgg.action?zbggType=1&ggbt={encoded_kw}&page.currentPage=1"
+def _chdtp_query(page, ggbt: str) -> list[dict]:
+    target_src = CHD_QUERY_URL + urllib.parse.quote(ggbt)
     page.evaluate(
-        """(src) => {
-            const ifr = document.querySelector('#iframepage4') || document.querySelector('iframe');
-            if (ifr) ifr.src = src;
-        }""",
+        """(src) => { const ifr = document.querySelector('#iframepage4'); if (ifr) ifr.src = src; }""",
         target_src
     )
-    page.wait_for_timeout(3500)
-    target_frame = None
-    for f in page.frames:
-        if "queryWebZbgg" in f.url or f.name == "iframepage4":
-            target_frame = f
-            break
-    if not target_frame:
+    page.wait_for_timeout(4000)
+    target_frame = next((f for f in page.frames if "queryWebZbgg" in f.url), None)
+    if target_frame is None:
         return []
-
-    raw_rows = target_frame.evaluate("""() => {
+    rows = target_frame.evaluate("""() => {
         const trs = Array.from(document.querySelectorAll('tr'));
         return trs.map(tr => {
-            const a = tr.querySelector('a[onclick], a[title]');
-            if (!a) return null;
-            const tds = Array.from(tr.querySelectorAll('td')).map(td => td.innerText.trim());
+            const tds = Array.from(tr.querySelectorAll('td')).map(td => (td.textContent || '').trim());
+            const a = tr.querySelector('a[onclick]');
             return {
-                title: (a.getAttribute('title') || a.innerText || '').trim(),
-                onclick: a.getAttribute('onclick') || '',
-                text: tds.join(' | ')
+                title: tds[1] || '',
+                type: tds[2] || '',
+                date: (tds[3] || '').replace(/[\\[\\]]/g, ''),
+                onclick: a ? a.getAttribute('onclick') : ''
             };
-        }).filter(Boolean);
+        }).filter(r => r.title.length > 8);
     }""")
-
-    items = []
-    for r in raw_rows:
-        nid = _extract_chdtp_id(r["onclick"])
-        date_m = re.search(r"20\d{2}-\d{2}-\d{2}", r["text"])
-        items.append({
-            "native_id": nid,
-            "title": r["title"],
-            "notice_type": "招标公告",
-            "pub_date": date_m.group(0) if date_m else "",
-            "deadline": "",
-            "url": CHD_HOME_URL,
-        })
-    return items
+    # 站点正文无直链 URL（行为 onclick 跳转），条目统一指向入口页，去重靠 native_id
+    return [{
+        "native_id": _chd_native_id(r["onclick"]),
+        "title": r["title"],
+        "notice_type": r["type"] or "招标公告",
+        "pub_date": r["date"],
+        "deadline": "",
+        "url": CHD_PAGE_URL,
+    } for r in rows]
 
 def _chdtp_list(ctx) -> list[dict]:
     page = ctx.new_page()
     try:
-        page.goto(CHD_HOME_URL, wait_until="domcontentloaded", timeout=45000)
-        page.wait_for_timeout(2500)
-        # 优先空 ggbt 拉全量列表
-        items = _chdtp_query_iframe(page, ggbt="")
+        page.goto(CHD_PAGE_URL, wait_until="domcontentloaded", timeout=45000)
+        try:
+            page.wait_for_load_state("networkidle", timeout=20000)
+        except Exception:
+            pass
+        page.wait_for_timeout(2000)
+        # 空关键词=全量列表，保留全量计数（改版判据）与本地词库过滤
+        items = _chdtp_query(page, "")
         if not items:
-            logger.warning("[chdtp] 空 ggbt 返回 0 条，自动降级为 AVC/AGC 站内搜索模式")
+            # 站点拒绝空 ggbt 时降级为站内搜索；代价：标题可能被截断、失去全量计数（改版判据变弱）
+            logger.warning("[chdtp] 空 ggbt 返回 0 条，自动降级为关键词站内搜索模式")
             seen = set()
             for kw in ("AVC", "AGC", "自动电压", "自动发电"):
-                for it in _chdtp_query_iframe(page, ggbt=kw):
+                for it in _chdtp_query(page, kw):
                     key = it["native_id"] or it["title"]
                     if key not in seen:
                         seen.add(key)
@@ -651,16 +666,19 @@ def fetch_detail(ctx, site_key: str, item: dict) -> str:
 # 6. 离线自检入口（无需联网、无需安装 httpx/playwright 即可验证核心正则与注册表）
 # =====================================================================
 if __name__ == "__main__":
-    sample_gn = '<a href="/bidweb/001/001002/20261029/a1b2c3d4-1234.html" title="国能宁夏电力AVC系统改造招标公告">...</a><span>2026-10-29</span>'
-    m = _gn_row_re("招标公告").search(sample_gn)
-    assert m and m.group("title") == "国能宁夏电力AVC系统改造招标公告" and m.group("date") == "2026-10-29", "国能正则自检失败"
+    # 样例为 old/ 实测 URL 结构：/bidweb/001/{cat}/{页码}/{8位日期}/{uuid}.html
+    sample_gn = '<a href="/bidweb/001/001002/12/20261015/9f2e1a7b-3c4d.html" title="国能宁夏电力AVC系统改造招标公告">x</a>'
+    m = _gn_row_re("001002").search(sample_gn)
+    assert m and m.group(3) == "9f2e1a7b-3c4d", "国能 native_id 提取失败"
+    assert m.group(2) == "20261015" and m.group(4).startswith("国能宁夏电力AVC"), "国能正则自检失败"
 
-    assert _extract_chdtp_id("javascript:toDetail('CHD20261029001','1')") == "CHD20261029001", "华电 onclick 提取失败"
+    assert _chd_native_id("javascript:viewRow('123456','gg')") == "123456", "华电 onclick 提取失败"
+    assert _chd_native_id("") == "", "华电 onclick 空值自检失败"
     assert set(LIST_HANDLERS.keys()) == {"chnenergy", "cdt_ec", "chdtp", "sgcc", "neep", "chng", "espic"}, "注册表键不完整"
     print("✅ src/sites.py 离线断言全部通过！")
 ```
 
-### 4. `src/main.py`（激活 `batch_penetrate` + 状态槽防漏跑调度）
+### 4. `src/main.py`（激活 `batch_penetrate` + 穿透负缓存 + 状态槽防漏跑调度）
 ```python
 import sys
 import time
@@ -673,7 +691,7 @@ from playwright.sync_api import sync_playwright
 
 from storage import (
     init_db, upsert_notice, get_pending_notices, mark_notified,
-    is_slot_done_today, mark_slot_done
+    is_slot_done_today, mark_slot_done, is_penetrated, mark_penetrated
 )
 from mailer import send_email, render_notices_html
 from sites import fetch_list, fetch_detail
@@ -737,13 +755,17 @@ def run_job(send_daily_report: bool = False):
                         if upsert_notice(item):
                             hit_count += 1
                     # 第二级：标题命中批次穿透词 -> 拉取详情正文匹配核心词
+                    # (pen_seen 负缓存：未命中条目不再每轮重复拉正文，sgcc 启用后防单轮拖到十几分钟)
                     elif any(pen.upper() in item["title"].upper() for pen in cfg["keywords"].get("batch_penetrate", [])):
-                        penetrate_count += 1
-                        body = fetch_detail(context, site_key, item)
-                        if body and any(k.upper() in body.upper() for k in cfg["keywords"]["include"]):
-                            item["title"] = f"[正文命中] {item['title']}"
-                            if upsert_notice(item):
-                                hit_count += 1
+                        pkey = item.get("native_id") or item["title"]
+                        if not is_penetrated(site_key, pkey):
+                            penetrate_count += 1
+                            body = fetch_detail(context, site_key, item)
+                            mark_penetrated(site_key, pkey)
+                            if body and any(k.upper() in body.upper() for k in cfg["keywords"]["include"]):
+                                item["title"] = f"[正文命中] {item['title']}"
+                                if upsert_notice(item):
+                                    hit_count += 1
 
                 status = "✅ 正常" if raw_count > 0 else "⚠️ 抓取为0(疑似改版或空窗)"
                 if raw_count == 0:
@@ -799,8 +821,12 @@ if __name__ == "__main__":
         for slot in slots:
             if now_hm >= slot and not is_slot_done_today(slot, today_str):
                 logger.info(f"触发时间槽 [{slot}] (当前时间 {now_hm})...")
-                run_job(send_daily_report=(slot == report_slot))
-                mark_slot_done(slot, today_str)
+                try:
+                    run_job(send_daily_report=(slot == report_slot))
+                    mark_slot_done(slot, today_str)
+                except Exception:
+                    # 轮次失败不杀进程、不标记槽位，下个轮询周期自动重试（配置改坏时容器存活可热修）
+                    logger.critical(f"时间槽 [{slot}] 执行失败，将在下个轮询周期重试", exc_info=True)
 
         time.sleep(30)
 ```
