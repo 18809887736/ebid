@@ -897,7 +897,12 @@ docker compose run --rm ebid-monitor python src/main.py --now
    ```bash
    docker compose up -d --build
    ```
-2. **临近截标日手动立即加查一轮**：
+2. **随时手动加查一轮（两种方式）**：
+   **方式 A（推荐）**：双击 `巡检.bat` 或创建触发文件——守护进程每 30 秒检查 `data/run_now`，存在即加跑一轮（与定时轮次同进程串行，不会并发重复发信，执行完自动删除）：
+   ```bash
+   type nul > data\run_now    # Windows cmd；Git Bash/Linux 用 touch data/run_now
+   ```
+   **方式 B**：容器内独立进程执行（附带发送汇总日报；与常驻进程并发，恰逢定时轮次时存在小概率重复发送，日常优先方式 A）：
    ```bash
    docker compose exec ebid-monitor python src/main.py --now
    ```

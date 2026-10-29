@@ -3,6 +3,7 @@ import time
 import yaml
 import shutil
 import logging
+from pathlib import Path
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
 from playwright.sync_api import sync_playwright
@@ -23,6 +24,8 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger("ebid")
+
+RUN_NOW_TRIGGER = Path("/app/data/run_now")  # 出现此文件即手动加跑一轮(与定时轮次同进程串行,避免并发重复发信)
 
 def load_config() -> dict:
     with open("/app/config.yaml", "r", encoding="utf-8") as f:
@@ -135,6 +138,14 @@ if __name__ == "__main__":
         now = datetime.now()
         today_str = now.strftime("%Y-%m-%d")
         now_hm = now.strftime("%H:%M")
+
+        if RUN_NOW_TRIGGER.exists():
+            RUN_NOW_TRIGGER.unlink(missing_ok=True)
+            logger.info("检测到手动触发文件 data/run_now，立即执行一轮巡检...")
+            try:
+                run_job(send_daily_report=False)
+            except Exception:
+                logger.critical("手动触发的巡检执行失败", exc_info=True)
 
         for slot in slots:
             if now_hm >= slot and not is_slot_done_today(slot, today_str):
