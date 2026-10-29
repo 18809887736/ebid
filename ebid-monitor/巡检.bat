@@ -1,6 +1,5 @@
 @echo off
-chcp 65001 >nul
 type nul > "%~dp0data\run_now"
-echo [ebid] å·²å†™å…¥è§¦å‘æ–‡ä»¶ data\run_nowï¼Œå¸¸é©»è¿›ç¨‹å°†åœ¨çº¦ 30 ç§’å†…å¼€å§‹åŠ è·‘ä¸€è½®å·¡æ£€ã€‚
-echo [ebid] ç»“æœï¼šå‘½ä¸­æ‰å‘é‚®ä»¶ï¼›å®Œæ•´è¿‡ç¨‹å¯ç”¨ docker compose logs -f æŸ¥çœ‹ã€‚
+echo [ebid] ÒÑĞ´Èë data\run_now£¬Ô¼ 30 ÃëÄÚ¿ªÊ¼¼ÓÅÜÒ»ÂÖÑ²¼ì¡£
+echo [ebid] ÃüÖĞ²Å·¢ÓÊ¼ş£»¹ı³Ì¿É¿´ docker compose logs -f¡£
 pause
