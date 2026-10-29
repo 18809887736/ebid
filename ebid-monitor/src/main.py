@@ -4,7 +4,7 @@ import yaml
 import shutil
 import logging
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from logging.handlers import RotatingFileHandler
 from playwright.sync_api import sync_playwright
 
@@ -44,6 +44,8 @@ def is_excluded(title: str, kw_cfg: dict) -> bool:
 def run_job(send_daily_report: bool = False):
     cfg = load_config()
     init_db()
+    scan_days = int(cfg.get("scan_days") or 0)
+    cutoff = (datetime.now() - timedelta(days=scan_days)).strftime("%Y-%m-%d") if scan_days > 0 else ""
     stats = []
     has_site_error = False
 
@@ -69,10 +71,13 @@ def run_job(send_daily_report: bool = False):
                 for item in raw_items:
                     if is_excluded(item["title"], cfg["keywords"]):
                         continue
+                    # 时间跨度门禁：发布日期早于 cutoff 的旧公告不收录(无日期或未配置跨度则放行)
+                    if cutoff and item.get("pub_date") and item["pub_date"] < cutoff:
+                        continue
                     item["site"], item["site_name"] = site_key, site_name
 
-                    # 第一级：标题直接命中核心词
-                    if match_keywords(item["title"], cfg["keywords"]):
+                    # 第一级：标题直接命中核心词(search_hit=站内搜索已验证命中,标题被截断也放行)
+                    if match_keywords(item["title"], cfg["keywords"]) or item.get("search_hit"):
                         if upsert_notice(item):
                             hit_count += 1
                     # 第二级：标题命中批次穿透词 -> 拉取详情正文匹配核心词

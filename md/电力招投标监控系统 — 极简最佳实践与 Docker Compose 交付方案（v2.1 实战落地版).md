@@ -123,6 +123,9 @@ schedule:
     - "14:30"   # 午后巡检
   daily_report_time: "08:30"
 
+# 巡检收录时间跨度(天)：只收录发布日期在跨度内的公告；测试期 70 天，常态建议 30
+scan_days: 70
+
 keywords:
   # 第一级：标题直通核心词（或第二级正文穿透匹配词）
   include:
@@ -547,18 +550,21 @@ def _chdtp_list(ctx) -> list[dict]:
         except Exception:
             pass
         page.wait_for_timeout(2000)
-        # 空关键词=全量列表，保留全量计数（改版判据）与本地词库过滤
+        # 空关键词=全量列表(仅首页约20条,提供最新公告与改版判据)
         items = _chdtp_query(page, "")
         if not items:
-            # 站点拒绝空 ggbt 时降级为站内搜索；代价：标题可能被截断、失去全量计数（改版判据变弱）
             logger.warning("[chdtp] 空 ggbt 返回 0 条，自动降级为关键词站内搜索模式")
-            seen = set()
-            for kw in ("AVC", "AGC", "自动电压", "自动发电"):
-                for it in _chdtp_query(page, kw):
-                    key = it["native_id"] or it["title"]
-                    if key not in seen:
-                        seen.add(key)
-                        items.append(it)
+        # 站内搜索回捞历史公告：全量列表翻页契约未知，关键词搜索可覆盖全部历史；
+        # 搜索结果标题可能被"..."截断导致本地 include 匹配失败，标记 search_hit 交由 main 放行
+        seen = {(it["native_id"] or it["title"]) for it in items}
+        for kw in ("AVC", "AGC", "自动电压", "自动发电"):
+            for it in _chdtp_query(page, kw):
+                key = it["native_id"] or it["title"]
+                if key in seen:
+                    continue
+                seen.add(key)
+                it["search_hit"] = True
+                items.append(it)
         return items
     finally:
         page.close()
@@ -686,7 +692,7 @@ import time
 import yaml
 import shutil
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from logging.handlers import RotatingFileHandler
 from playwright.sync_api import sync_playwright
 
@@ -724,6 +730,8 @@ def is_excluded(title: str, kw_cfg: dict) -> bool:
 def run_job(send_daily_report: bool = False):
     cfg = load_config()
     init_db()
+    scan_days = int(cfg.get("scan_days") or 0)
+    cutoff = (datetime.now() - timedelta(days=scan_days)).strftime("%Y-%m-%d") if scan_days > 0 else ""
     stats = []
     has_site_error = False
 
@@ -749,10 +757,13 @@ def run_job(send_daily_report: bool = False):
                 for item in raw_items:
                     if is_excluded(item["title"], cfg["keywords"]):
                         continue
+                    # 时间跨度门禁：发布日期早于 cutoff 的旧公告不收录(无日期或未配置跨度则放行)
+                    if cutoff and item.get("pub_date") and item["pub_date"] < cutoff:
+                        continue
                     item["site"], item["site_name"] = site_key, site_name
 
-                    # 第一级：标题直接命中核心词
-                    if match_keywords(item["title"], cfg["keywords"]):
+                    # 第一级：标题直接命中核心词(search_hit=站内搜索已验证命中,标题被截断也放行)
+                    if match_keywords(item["title"], cfg["keywords"]) or item.get("search_hit"):
                         if upsert_notice(item):
                             hit_count += 1
                     # 第二级：标题命中批次穿透词 -> 拉取详情正文匹配核心词

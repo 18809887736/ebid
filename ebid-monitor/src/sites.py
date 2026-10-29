@@ -172,18 +172,21 @@ def _chdtp_list(ctx) -> list[dict]:
         except Exception:
             pass
         page.wait_for_timeout(2000)
-        # 空关键词=全量列表，保留全量计数（改版判据）与本地词库过滤
+        # 空关键词=全量列表(仅首页约20条,提供最新公告与改版判据)
         items = _chdtp_query(page, "")
         if not items:
-            # 站点拒绝空 ggbt 时降级为站内搜索；代价：标题可能被截断、失去全量计数（改版判据变弱）
             logger.warning("[chdtp] 空 ggbt 返回 0 条，自动降级为关键词站内搜索模式")
-            seen = set()
-            for kw in ("AVC", "AGC", "自动电压", "自动发电"):
-                for it in _chdtp_query(page, kw):
-                    key = it["native_id"] or it["title"]
-                    if key not in seen:
-                        seen.add(key)
-                        items.append(it)
+        # 站内搜索回捞历史公告：全量列表翻页契约未知，关键词搜索可覆盖全部历史；
+        # 搜索结果标题可能被"..."截断导致本地 include 匹配失败，标记 search_hit 交由 main 放行
+        seen = {(it["native_id"] or it["title"]) for it in items}
+        for kw in ("AVC", "AGC", "自动电压", "自动发电"):
+            for it in _chdtp_query(page, kw):
+                key = it["native_id"] or it["title"]
+                if key in seen:
+                    continue
+                seen.add(key)
+                it["search_hit"] = True
+                items.append(it)
         return items
     finally:
         page.close()
