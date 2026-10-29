@@ -89,6 +89,7 @@ WORKDIR /app
 RUN pip install --no-cache-dir \
     httpx \
     pyyaml \
+    playwright==1.48.0 \
     beautifulsoup4
 
 CMD ["python", "src/main.py"]
@@ -155,7 +156,7 @@ sites:
   chnenergy: { name: "国能E招", enabled: true, url: "http://www.chnenergybidding.com.cn" }
   cdt_ec:    { name: "大唐集团电商(犀维)", enabled: true, url: "https://www.cweme.cn" }
   chdtp:     { name: "华电集团电商", enabled: true, url: "https://www.chdtp.com" }
-  sgcc:      { name: "国家电网ECP2.0", enabled: false, url: "https://ecp.sgcc.com.cn" }
+  sgcc:      { name: "国家电网ECP2.0", enabled: true, url: "https://ecp.sgcc.com.cn" }
   neep:      { name: "国家能源e购", enabled: false, url: "http://www.neep.shop" }
   chng:      { name: "华能集团电商", enabled: false, url: "http://ec.chng.com.cn" }
   espic:     { name: "国电投电能易购", enabled: false, url: "https://ebid.espic.com.cn" }

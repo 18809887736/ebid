@@ -1,0 +1,85 @@
+flowchart TB
+    classDef t1 fill:#dcfce7,stroke:#15803d,stroke-width:2px,color:#000
+    classDef t2 fill:#fef9c3,stroke:#a16207,stroke-width:2px,color:#000
+    classDef t3 fill:#f1f5f9,stroke:#64748b,stroke-width:1px,color:#000
+    classDef core fill:#dbeafe,stroke:#1d4ed8,stroke-width:2px,color:#000
+    classDef store fill:#f3e8ff,stroke:#6b21a8,stroke-width:2px,color:#000
+    classDef mail fill:#fce7f3,stroke:#be185d,stroke-width:2px,color:#000
+    classDef vol fill:#ffffff,stroke:#94a3b8,stroke-width:1px,stroke-dasharray:4 3,color:#000
+    classDef out fill:#dcfce7,stroke:#15803d,stroke-width:3px,color:#000
+
+    subgraph SRC["采集源 · 100% 免密公开通道"]
+        direction LR
+        subgraph T1["第一梯队 已就绪 enabled=true"]
+            A1["国能E招 chnenergybidding.com.cn<br/>httpx+正则 · 3分类×3页<br/>URL路径段取日期/ID"]:::t1
+            A2["大唐犀维 cweme.cn<br/>ctx.request POST getList<br/>messagetype 0/1/4 · gg_id"]:::t1
+            A3["华电 chdtp.com<br/>caigou.jsp iframe注入过瑞数<br/>空ggbt失败降级站内搜索"]:::t1
+        end
+        subgraph T2["第二梯队 Spike enabled=false"]
+            B1["国网ECP2.0 + 绿链<br/>page.on response 拦截 ecpwcmcore<br/>批次公告 doc 路由正文穿透"]:::t2
+        end
+        subgraph T3["第三梯队 占位 enabled=false"]
+            B2["neep.shop<br/>显式raise"]:::t3
+            B3["ec.chng.com.cn<br/>显式raise"]:::t3
+            B4["ebid.espic.com.cn<br/>显式raise"]:::t3
+        end
+        Z1["电力设备信息网 cpeinet.com.cn<br/>收费聚合 · 不纳入"]:::t3
+    end
+
+    subgraph DOCKER["docker · ebid-monitor 单容器（Playwright镜像 · shm 1GB · init:true · restart=unless-stopped）"]
+        direction TB
+        M["main.py 状态槽调度<br/>30s轮询 · slot_runs 当日漏跑补齐<br/>轮次 08:30 / 14:30<br/>轮次失败 try 兜底下轮重试"]:::core
+        FL["sites.py · fetch_list ctx<br/>统一契约 native_id / title / pub_date / deadline / url"]:::core
+        G1{"一级 · 标题匹配<br/>include 直通 · exclude 排除"}:::core
+        G2{"二级 · 已穿透过?<br/>pen_seen 负缓存"}:::store
+        FD["fetch_detail 正文穿透<br/>batch_penetrate 触发<br/>正文二次匹配 include"]:::core
+        UP["storage.py · upsert_notice<br/>新记录 notified_at=NULL<br/>deadline 变更 is_changed=1 重发"]:::store
+        DB[("SQLite ebid.db<br/>notices · slot_runs · pen_seen")]:::store
+        PD["待发队列<br/>notified_at IS NULL<br/>发信失败留库 · 下轮自动补发"]:::store
+        ML["mailer.py<br/>safe_url 防投毒 · clean_and_escape<br/>主备 SMTP 自动切换"]:::mail
+
+        M -->|每轮 run_job| FL
+        FL --> G1
+        G1 -->|命中| UP
+        G1 -->|命中穿透词| G2
+        G2 -->|是 · 跳过| PD
+        G2 -->|否| FD
+        FD -->|正文命中| UP
+        FD -->|未命中 · 记入 pen_seen| DB
+        UP --> DB
+        DB --> PD
+        PD --> ML
+    end
+
+    subgraph VOL["宿主机 Volume 热挂载 · 改代码免 rebuild"]
+        direction LR
+        V1["./src :ro<br/>适配器源码"]:::vol
+        V2["./config.yaml :ro<br/>词库 · 站点开关"]:::vol
+        V3["./data rw<br/>ebid.db · app.log"]:::vol
+        V4[".env<br/>主备 SMTP 授权码"]:::vol
+    end
+
+    subgraph MAIL["邮件输出"]
+        direction LR
+        S1["主通道<br/>smtp.qq.com:465"]:::mail
+        S2["备通道<br/>smtp.163.com:465"]:::mail
+        OB["收件箱<br/>新标提醒 · 08:30 心跳日报<br/>站点异常 ⚠️ 随轮即报"]:::out
+    end
+
+    A1 --> FL
+    A2 --> FL
+    A3 --> FL
+    B1 -.待容器冒烟.-> FL
+    B2 -.占位.-> FL
+    B3 -.占位.-> FL
+    B4 -.占位.-> FL
+
+    V1 -.-> DOCKER
+    V2 -.-> DOCKER
+    V3 -.-> DB
+    V4 -.-> ML
+
+    ML --> S1
+    ML -.主失败自动切换.-> S2
+    S1 --> OB
+    S2 --> OB

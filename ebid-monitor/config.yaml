@@ -1,0 +1,43 @@
+schedule:
+  runs:
+    - "08:30"   # 早间巡检（此轮固定发送每日巡检日报）
+    - "14:30"   # 午后巡检
+  daily_report_time: "08:30"
+
+keywords:
+  # 第一级：标题直通核心词（或第二级正文穿透匹配词）
+  include:
+    - "AVC"
+    - "AGC"
+    - "自动电压"
+    - "自动发电"
+    - "无功电压"
+    - "有功控制"
+    - "一次调频"
+    - "场站控制"
+    - "功率控制"
+    - "风光储协调"
+  # 第二级：概括性批次标题穿透触发词（命中后调用 fetch_detail 抓正文二次匹配 include）
+  batch_penetrate:
+    - "二次设备"
+    - "调度自动化"
+    - "变电设备"
+    - "监控系统"
+    - "电网数字化"
+    - "自动化设备"
+  # 排除噪音词
+  exclude:
+    - "保洁"
+    - "食堂"
+    - "物业"
+    - "通勤车"
+    - "办公家具"
+
+sites:
+  chnenergy: { name: "国能E招", enabled: true, url: "http://www.chnenergybidding.com.cn" }
+  cdt_ec:    { name: "大唐集团电商(犀维)", enabled: true, url: "https://www.cweme.cn" }
+  chdtp:     { name: "华电集团电商", enabled: true, url: "https://www.chdtp.com" }
+  sgcc:      { name: "国家电网ECP2.0", enabled: true, url: "https://ecp.sgcc.com.cn" }
+  neep:      { name: "国家能源e购", enabled: false, url: "http://www.neep.shop" }
+  chng:      { name: "华能集团电商", enabled: false, url: "http://ec.chng.com.cn" }
+  espic:     { name: "国电投电能易购", enabled: false, url: "https://ebid.espic.com.cn" }

@@ -1,0 +1,21 @@
+services:
+  ebid-monitor:
+    build: .
+    container_name: ebid-monitor
+    restart: unless-stopped
+    shm_size: '1gb'          # 防止无头 Chromium 渲染复杂页面时因共享内存不足崩溃
+    init: true               # 自动回收浏览器子进程，防止长期运行产生僵尸进程
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Shanghai
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+      - ./src:/app/src:ro
+      - ./data:/app/data
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "3"
