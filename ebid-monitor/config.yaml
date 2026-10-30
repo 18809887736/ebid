@@ -36,12 +36,6 @@ keywords:
     - "通勤车"
     - "办公家具"
 
-# 宿主 RPA 巡查参数(cdt_rpa.mjs 读取):搜索词与各站期望命中标题关键词
-rpa_check:
-  keyword: "AVC"
-  expect_cdt_ec: "阳城"
-  expect_chdtp: "木里河"
-
 sites:
   chnenergy: { name: "国能E招", enabled: true, url: "http://www.chnenergybidding.com.cn" }
   cdt_ec:    { name: "大唐集团电商(犀维)", enabled: true, url: "https://www.cweme.cn" }
@@ -50,4 +44,4 @@ sites:
   sgcc:      { name: "国家电网ECP2.0", enabled: true, url: "https://ecp.sgcc.com.cn" }
   neep:      { name: "国家能源e购", enabled: false, url: "http://www.neep.shop" }
   chng:      { name: "华能集团电商", enabled: false, url: "http://ec.chng.com.cn" }
-  espic:     { name: "国电投电能易购", enabled: false, url: "https://ebid.espic.com.cn" }
+  espic:     { name: "国电投电能易购", enabled: false, url: "https://ebid.espic.com.cn/newgdtcms//category/bulletinListNew.html?dates=300&categoryId=2&tenderMethod=01&tabName=%E6%8B%9B%E6%A0%87%E4%BF%A1%E6%81%AF&page=1" }  # 招标信息列表页深链;处理器未实现,enabled:false
