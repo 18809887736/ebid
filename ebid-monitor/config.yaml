@@ -39,7 +39,7 @@ keywords:
 sites:
   chnenergy: { name: "国能E招", enabled: true, url: "http://www.chnenergybidding.com.cn" }
   cdt_ec:    { name: "大唐集团电商(犀维)", enabled: true, url: "https://www.cweme.cn" }
-  cdt_portal: { name: "大唐cdt-ec门户", enabled: false, url: "http://www.cdt-ec.com" }  # 2026-10-30 十格实测终局:仅人工浏览可得,详见文档§二
+  cdt_portal: { name: "大唐cdt-ec门户", enabled: false, url: "https://www.cdt-ec.com/notice/moreController/toMore?globleType=0" }  # 2026-10-30 ego-browser实测:页面可过瑞数,页内POST getList可取数(阳城AVC验证);容器内仍无自动化通道,详见文档§二
   chdtp:     { name: "华电集团电商", enabled: true, url: "https://www.chdtp.com" }
   sgcc:      { name: "国家电网ECP2.0", enabled: true, url: "https://ecp.sgcc.com.cn" }
   neep:      { name: "国家能源e购", enabled: false, url: "http://www.neep.shop" }
