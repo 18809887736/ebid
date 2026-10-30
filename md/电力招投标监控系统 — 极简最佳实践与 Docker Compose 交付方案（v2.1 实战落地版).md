@@ -974,7 +974,7 @@ docker compose run --rm ebid-monitor python src/main.py --now
    docker compose up -d --build
    ```
 2. **随时手动加查一轮（两种方式）**：
-   **方式 A（推荐）**：双击 `巡检.bat` 或创建触发文件——守护进程每 30 秒检查 `data/run_now`，存在即加跑一轮（与定时轮次同进程串行，不会并发重复发信，执行完自动删除）：
+   **方式 A（推荐）**：双击 `巡检.bat`——写入触发文件后**自动等待本轮完成并蜂鸣+弹窗提示**（约 2 分钟；容器 90 秒未响应会转而提醒检查容器状态）；或手工创建触发文件，守护进程每 30 秒检查 `data/run_now`，存在即加跑一轮（与定时轮次同进程串行，不会并发重复发信，执行完自动删除）：
    ```bash
    type nul > data\run_now    # Windows cmd；Git Bash/Linux 用 touch data/run_now
    ```
