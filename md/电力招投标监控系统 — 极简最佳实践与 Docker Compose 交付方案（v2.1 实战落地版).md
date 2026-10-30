@@ -30,6 +30,7 @@
 | :---: | :--- | :--- | :--- | :---: |
 | **第一梯队**<br>（已移植可用） | `chnenergy` | **国能E招** (`chnenergybidding.com.cn`) | 纯 `httpx` 请求 + `_gn_row_re` 正则解析；URL 文件名作 `native_id`；`bs4` 抽正文支持穿透。 | ✅ 已就绪 |
 | **第一梯队**<br>（已移植可用） | `cdt_ec` | **大唐集团电商 / 犀维** (`cdt-ec.com` / `cweme.cn`) | 先开列表页拿会话 Cookie，再调 `ctx.request.post` 查 `getList`；`gg_id` 作 `native_id`；支持详情穿透。 | ✅ 已就绪 |
+| **暂缓**<br>（瑞数硬拦） | `cdt_portal` | **大唐 cdt-ec 门户** (`cdt-ec.com/notice/`) | xvfb 有头驱动门户搜索 + 响应拦截（适配器草稿已备，复用 search_hit 放行）。2026-10-30 实测：瑞数对无头 / 新无头 / xvfb 有头一律返回空数据（环境指纹级检测），待新通道（如宿主真实浏览器 ego-browser）。门户与犀维数据不重合（阳城 AVC 案例证实门户独有公告）。 | 🚫 草稿停用 |
 | **第一梯队**<br>（已移植可用） | `chdtp` | **华电集团电商** (`chdtp.com`) | `#iframepage4` 注入查询 URL 过瑞数；从 `onclick` 提取 `native_id`；空 `ggbt` 失败自动回退关键词搜索。 | ✅ 已就绪 |
 | **第二梯队**<br>（最高优 Spike） | `sgcc` | **国家电网 ECP2.0 & 绿链** (`ecp.sgcc.com.cn` / `sgccetp.com.cn`) | `page.on("response")` 拦截 `ecpwcmcore` 列表 JSON；对批次标题打开 `#/doc/` 路由提取正文表格做二次穿透。 | 🔧 待容器冒烟 |
 | **第三梯队**<br>（排期增量） | `neep`<br>`chng`<br>`espic` | **国家能源e购** (`neep.shop`)<br>**华能电商门户** (`ec.chng.com.cn`，弃用 `101.201.169.110`)<br>**国电投电能易购** (`ebid.espic.com.cn`) | 代码中显式 `raise NotImplementedError`（严禁静默返回 `[]` 混淆改版判据）；在 `config.yaml` 中暂置 `enabled: false`。 | ⏳ 占位待补 |
@@ -158,6 +159,7 @@ keywords:
 sites:
   chnenergy: { name: "国能E招", enabled: true, url: "http://www.chnenergybidding.com.cn" }
   cdt_ec:    { name: "大唐集团电商(犀维)", enabled: true, url: "https://www.cweme.cn" }
+  cdt_portal: { name: "大唐cdt-ec门户", enabled: false, url: "http://www.cdt-ec.com" }  # 瑞数连 xvfb 有头都拦,待新通道
   chdtp:     { name: "华电集团电商", enabled: true, url: "https://www.chdtp.com" }
   sgcc:      { name: "国家电网ECP2.0", enabled: true, url: "https://ecp.sgcc.com.cn" }
   neep:      { name: "国家能源e购", enabled: false, url: "http://www.neep.shop" }
@@ -636,6 +638,68 @@ def _sgcc_detail(ctx, item: dict) -> str:
 
 
 # =====================================================================
+# 4.5 大唐 cdt-ec.com 门户 — 草稿,保持 enabled:false
+# 2026-10-30 实测:瑞数对无头/新无头/xvfb 有头一律返回空数据(环境指纹级检测),
+# 待新通道(如宿主 ego-browser)后再启用;代码保留备用。
+# =====================================================================
+CDT_PORTAL_URL = "http://www.cdt-ec.com/notice/webpage/jsp/more.jsp"
+CDT_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
+
+def _cdt_portal_list(ctx) -> list[dict]:
+    from playwright.sync_api import sync_playwright
+
+    with sync_playwright() as p:
+        # 有头模式需 xvfb 虚拟显示:容器 CMD 改为 xvfb-run 包装(当前因瑞数拦截未启用)
+        browser = p.chromium.launch(headless=False, args=["--disable-blink-features=AutomationControlled"])
+        try:
+            bctx = browser.new_context(user_agent=CDT_UA)
+            page = bctx.new_page()
+            page.goto(CDT_PORTAL_URL, timeout=45000)
+            page.wait_for_timeout(8000)  # 等瑞数挑战自解并自动重载
+
+            items, seen = [], set()
+            for kw in ("AVC", "AGC", "自动电压", "自动发电"):
+                box = []
+
+                def _cap(r, box=box):
+                    if "moreController/getList" in r.url:
+                        box.append(r)
+
+                page.on("response", _cap)
+                try:
+                    page.fill("#title", kw)
+                    page.locator("button", has_text="搜").first.click(timeout=10000)
+                    page.wait_for_timeout(6000)
+                except Exception as e:
+                    logger.warning(f"[cdt_portal] 关键词 {kw} 搜索失败: {str(e)[:100]}")
+                finally:
+                    page.remove_listener("response", _cap)
+                for r in box:
+                    try:
+                        rows = r.json().get("data") or []
+                    except Exception:
+                        continue  # 瑞数挑战页/非 JSON
+                    for g in rows:
+                        nid = str(g.get("gg_id") or g.get("id") or g.get("noticeId") or "").strip()
+                        title = str(g.get("message_title") or g.get("title") or g.get("name") or "").strip()
+                        if not (nid and title) or nid in seen:
+                            continue
+                        seen.add(nid)
+                        items.append({
+                            "native_id": nid,
+                            "title": title,
+                            "notice_type": "招标公告",
+                            "pub_date": str(g.get("publish_time") or g.get("create_time") or "")[:10],
+                            "deadline": "",
+                            "url": CDT_PORTAL_URL,
+                            "search_hit": True,  # 站内搜索已验证命中，标题截断也放行
+                        })
+            return items
+        finally:
+            browser.close()
+
+
+# =====================================================================
 # 5. 未实现站点显式占位（严禁静默返回空列表）与统一调度入口
 # =====================================================================
 def _unimplemented_list(ctx) -> list[dict]:
@@ -644,6 +708,7 @@ def _unimplemented_list(ctx) -> list[dict]:
 LIST_HANDLERS = {
     "chnenergy": _chnenergy_list,
     "cdt_ec":    _cdt_ec_list,
+    "cdt_portal": _cdt_portal_list,
     "chdtp":     _chdtp_list,
     "sgcc":      _sgcc_list,
     "neep":      _unimplemented_list,
@@ -681,7 +746,7 @@ if __name__ == "__main__":
 
     assert _chd_native_id("javascript:viewRow('123456','gg')") == "123456", "华电 onclick 提取失败"
     assert _chd_native_id("") == "", "华电 onclick 空值自检失败"
-    assert set(LIST_HANDLERS.keys()) == {"chnenergy", "cdt_ec", "chdtp", "sgcc", "neep", "chng", "espic"}, "注册表键不完整"
+    assert set(LIST_HANDLERS.keys()) == {"chnenergy", "cdt_ec", "cdt_portal", "chdtp", "sgcc", "neep", "chng", "espic"}, "注册表键不完整"
     print("✅ src/sites.py 离线断言全部通过！")
 ```
 

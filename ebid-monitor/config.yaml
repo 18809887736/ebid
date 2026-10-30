@@ -39,6 +39,7 @@ keywords:
 sites:
   chnenergy: { name: "国能E招", enabled: true, url: "http://www.chnenergybidding.com.cn" }
   cdt_ec:    { name: "大唐集团电商(犀维)", enabled: true, url: "https://www.cweme.cn" }
+  cdt_portal: { name: "大唐cdt-ec门户", enabled: false, url: "http://www.cdt-ec.com" }  # 瑞数连 xvfb 有头都拦,待新通道
   chdtp:     { name: "华电集团电商", enabled: true, url: "https://www.chdtp.com" }
   sgcc:      { name: "国家电网ECP2.0", enabled: true, url: "https://ecp.sgcc.com.cn" }
   neep:      { name: "国家能源e购", enabled: false, url: "http://www.neep.shop" }
