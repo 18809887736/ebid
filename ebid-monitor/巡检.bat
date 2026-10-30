@@ -3,7 +3,7 @@ setlocal
 type nul > "%~dp0data\run_now"
 echo [ebid] 已触发巡检，等待容器执行...
 
-rem 最多等 90 秒让守护进程消费触发文件；用 ping 延时避免 timeout 命令被其他程序同名劫持
+rem 最多等 90 秒让守护进程消费触发文件；用 ping 延时避免 timeout 被同名工具劫持
 set /a n=0
 :wait_start
 if not exist "%~dp0data\run_now" goto started

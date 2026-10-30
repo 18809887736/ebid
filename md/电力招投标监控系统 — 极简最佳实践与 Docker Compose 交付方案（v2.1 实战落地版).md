@@ -30,7 +30,7 @@
 | :---: | :--- | :--- | :--- | :---: |
 | **第一梯队**<br>（已移植可用） | `chnenergy` | **国能E招** (`chnenergybidding.com.cn`) | 纯 `httpx` 请求 + `_gn_row_re` 正则解析；URL 文件名作 `native_id`；`bs4` 抽正文支持穿透。 | ✅ 已就绪 |
 | **第一梯队**<br>（已移植可用） | `cdt_ec` | **大唐集团电商 / 犀维** (`cdt-ec.com` / `cweme.cn`) | 先开列表页拿会话 Cookie，再调 `ctx.request.post` 查 `getList`；`gg_id` 作 `native_id`；支持详情穿透。 | ✅ 已就绪 |
-| **暂缓**<br>（瑞数硬拦） | `cdt_portal` | **大唐 cdt-ec 门户** (`cdt-ec.com/notice/`) | xvfb 有头驱动门户搜索 + 响应拦截（适配器草稿已备，复用 search_hit 放行）。2026-10-30 实测：瑞数对无头 / 新无头 / xvfb 有头一律返回空数据（环境指纹级检测），待新通道（如宿主真实浏览器 ego-browser）。门户与犀维数据不重合（阳城 AVC 案例证实门户独有公告）。 | 🚫 草稿停用 |
+| **暂缓**<br>（瑞数硬拦） | `cdt_portal` | **大唐 cdt-ec 门户** (`cdt-ec.com/notice/`) | 2026-10-30 终局实测：瑞数对**无头 / 新无头 / xvfb 有头 / 宿主 ego-browser 真实浏览器**一律返回空数据（页面可开、列表恒 0 行），唯有人手动浏览的真实浏览器可得数据。适配器草稿已备（xvfb 有头+搜索拦截+search_hit），解锁条件出现前保持停用；人工浏览 cdt-ec 作为兜底。 | 🚫 草稿停用 |
 | **第一梯队**<br>（已移植可用） | `chdtp` | **华电集团电商** (`chdtp.com`) | `#iframepage4` 注入查询 URL 过瑞数；从 `onclick` 提取 `native_id`；空 `ggbt` 失败自动回退关键词搜索。 | ✅ 已就绪 |
 | **第二梯队**<br>（最高优 Spike） | `sgcc` | **国家电网 ECP2.0 & 绿链** (`ecp.sgcc.com.cn` / `sgccetp.com.cn`) | `page.on("response")` 拦截 `ecpwcmcore` 列表 JSON；对批次标题打开 `#/doc/` 路由提取正文表格做二次穿透。 | 🔧 待容器冒烟 |
 | **第三梯队**<br>（排期增量） | `neep`<br>`chng`<br>`espic` | **国家能源e购** (`neep.shop`)<br>**华能电商门户** (`ec.chng.com.cn`，弃用 `101.201.169.110`)<br>**国电投电能易购** (`ebid.espic.com.cn`) | 代码中显式 `raise NotImplementedError`（严禁静默返回 `[]` 混淆改版判据）；在 `config.yaml` 中暂置 `enabled: false`。 | ⏳ 占位待补 |

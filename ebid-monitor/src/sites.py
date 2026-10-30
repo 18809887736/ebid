@@ -258,65 +258,14 @@ def _sgcc_detail(ctx, item: dict) -> str:
 
 
 # =====================================================================
-# 4.5 大唐 cdt-ec.com 门户 — 草稿,保持 enabled:false
-# 2026-10-30 实测:瑞数对无头/新无头/xvfb 有头一律返回空数据(环境指纹级检测),
-# 待新通道(如宿主 ego-browser)后再启用;代码保留备用。
+# 4.5 大唐 cdt-ec.com 门户 — 无可用自动化通道(2026-10-30 终局,enabled:false)
+# 十格实测全部失败:容器无头/新无头/xvfb有头、宿主 ego-browser、CDP 附真实配置
+# (Chrome 136 起默认配置禁用一切调试)、真实 chrome+新配置+剥离自动化标记、
+# 拟人行为(鼠标轨迹/逐字输入/停留)、patchright 反检测——一律空数据。
+# 唯一通道=人工浏览;本函数保持显式拒绝,若未来站点放宽或出现新通道再启用。
 # =====================================================================
-CDT_PORTAL_URL = "http://www.cdt-ec.com/notice/webpage/jsp/more.jsp"
-CDT_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
-
 def _cdt_portal_list(ctx) -> list[dict]:
-    from playwright.sync_api import sync_playwright
-
-    with sync_playwright() as p:
-        # 有头模式跑在容器 xvfb 虚拟显示上；主进程需经 xvfb-run 启动（见 Dockerfile CMD）
-        browser = p.chromium.launch(headless=False, args=["--disable-blink-features=AutomationControlled"])
-        try:
-            bctx = browser.new_context(user_agent=CDT_UA)
-            page = bctx.new_page()
-            page.goto(CDT_PORTAL_URL, timeout=45000)
-            page.wait_for_timeout(8000)  # 等瑞数挑战自解并自动重载
-
-            items, seen = [], set()
-            for kw in ("AVC", "AGC", "自动电压", "自动发电"):
-                box = []
-
-                def _cap(r, box=box):
-                    if "moreController/getList" in r.url:
-                        box.append(r)
-
-                page.on("response", _cap)
-                try:
-                    page.fill("#title", kw)
-                    page.locator("button", has_text="搜").first.click(timeout=10000)
-                    page.wait_for_timeout(6000)
-                except Exception as e:
-                    logger.warning(f"[cdt_portal] 关键词 {kw} 搜索失败: {str(e)[:100]}")
-                finally:
-                    page.remove_listener("response", _cap)
-                for r in box:
-                    try:
-                        rows = r.json().get("data") or []
-                    except Exception:
-                        continue  # 瑞数挑战页/非 JSON
-                    for g in rows:
-                        nid = str(g.get("gg_id") or g.get("id") or g.get("noticeId") or "").strip()
-                        title = str(g.get("message_title") or g.get("title") or g.get("name") or "").strip()
-                        if not (nid and title) or nid in seen:
-                            continue
-                        seen.add(nid)
-                        items.append({
-                            "native_id": nid,
-                            "title": title,
-                            "notice_type": "招标公告",
-                            "pub_date": str(g.get("publish_time") or g.get("create_time") or "")[:10],
-                            "deadline": "",
-                            "url": CDT_PORTAL_URL,
-                            "search_hit": True,  # 站内搜索已验证命中，标题截断也放行
-                        })
-            return items
-        finally:
-            browser.close()
+    raise RuntimeError("cdt-ec 门户无可用自动化通道(瑞数十格实测终局),仅人工浏览可得;请保持 enabled:false")
 
 
 # =====================================================================
