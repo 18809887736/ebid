@@ -36,6 +36,12 @@ keywords:
     - "通勤车"
     - "办公家具"
 
+# 宿主 RPA 巡查参数(cdt_rpa.mjs 读取):搜索词与各站期望命中标题关键词
+rpa_check:
+  keyword: "AVC"
+  expect_cdt_ec: "阳城"
+  expect_chdtp: "木里河"
+
 sites:
   chnenergy: { name: "国能E招", enabled: true, url: "http://www.chnenergybidding.com.cn" }
   cdt_ec:    { name: "大唐集团电商(犀维)", enabled: true, url: "https://www.cweme.cn" }

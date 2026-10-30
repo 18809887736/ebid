@@ -1,15 +1,29 @@
 // cdt-ec + chdtp RPA via ego-browser: real Chromium passes 瑞数; data read via in-page
 // POST/injected iframe (layui table renders 无数据 under automation, UI table unreliable).
 // Final hit lines also append to app.log so patrol results land in the monitor's log.
-import { appendFile } from "node:fs/promises";
+import { appendFile, readFile } from "node:fs/promises";
 
 const LOG = "C:/work/ebid/ebid-monitor/data/cdt_rpa.log";
 const APP_LOG = "C:/work/ebid/ebid-monitor/data/app.log";
 const URL = "https://www.cdt-ec.com/notice/moreController/toMore?globleType=0";
 const CHD_URL = "https://www.chdtp.com/pages/wzglS/cgxx/caigou.jsp?cgtype=4";
-const KEYWORD = "AVC";
-const EXPECT = "阳城";
-const CHD_EXPECT = "木里河";
+
+// 搜索词/期望命中从 config.yaml rpa_check 块读取(只解析该块内的平铺 key: value)
+const lines = (await readFile("C:/work/ebid/ebid-monitor/config.yaml", "utf8")).split(/\r?\n/);
+const start = lines.findIndex((l) => l.startsWith("rpa_check:"));
+const cfg = {};
+for (const l of lines.slice(start + 1)) {
+  if (/^\S/.test(l)) break;
+  const m = l.match(/^\s+(\w+):\s*"?([^"#]*?)"?\s*(?:#.*)?$/);
+  if (m) cfg[m[1]] = m[2].trim();
+}
+const KEYWORD = cfg.keyword || "";
+const EXPECT = cfg.expect_cdt_ec || "";
+const CHD_EXPECT = cfg.expect_chdtp || "";
+if (!KEYWORD || !EXPECT || !CHD_EXPECT) {
+  console.log(`${ts()} [cdt-rpa] [ERROR] config.yaml rpa_check 缺失 keyword/expect_cdt_ec/expect_chdtp`);
+  process.exit(1);
+}
 
 function ts() {
   const d = new Date();
@@ -27,7 +41,7 @@ async function logApp(msg) {
   await appendFile(APP_LOG, line, "utf8").catch((e) => console.log(`(app.log 写入失败: ${e})`));
 }
 
-await log("开始 RPA 巡查 cdt-ec + chdtp(ego-browser 真实浏览器)");
+await log(`开始 RPA 巡查 cdt-ec + chdtp(ego-browser 真实浏览器) 配置: keyword=${KEYWORD}, expect_cdt_ec=${EXPECT}, expect_chdtp=${CHD_EXPECT}`);
 const day = ts().slice(0, 10).replaceAll("-", "");
 const task = await taskSpace(`cdt-ec-rpa-${day}`);
 const page = task.page("p1");
