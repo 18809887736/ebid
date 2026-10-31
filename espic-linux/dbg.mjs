@@ -1,0 +1,22 @@
+const targets = await (await fetch("http://127.0.0.1:9222/json/list")).json();
+const ws = new WebSocket(targets.find((t) => t.type === "page").webSocketDebuggerUrl);
+await new Promise((r) => (ws.onopen = r));
+let id = 0;
+const pending = new Map();
+ws.onmessage = (ev) => { const m = JSON.parse(ev.data); if (m.id && pending.has(m.id)) { pending.get(m.id)(m); pending.delete(m.id); } };
+const cdp = (method, params = {}) => new Promise((res, rej) => { const mid = ++id; pending.set(mid, res); ws.send(JSON.stringify({ id: mid, method, params })); setTimeout(() => { if (pending.has(mid)) { pending.delete(mid); rej(new Error("to " + method)); } }, 30000); });
+const fs = await import("node:fs/promises");
+const src = await fs.readFile("/app/patrol.mjs", "utf8");
+// 提取 readState 的表达式原文,原样发给页面
+const i = src.indexOf('const readState = () => ev(`');
+const j = src.indexOf("`);", i);
+const expr = src.slice(i + 'const readState = () => ev(`'.length, j) + "";
+console.log("expr bytes:", Buffer.byteLength(expr), "head:", JSON.stringify(expr.slice(0, 60)));
+console.log("has-chinese:", /[一-鿿]/.test(expr));
+await cdp("Page.enable");
+await cdp("Page.navigate", { url: "https://ebid.espic.com.cn/newgdtcms//category/bulletinListNew.html?dates=300&categoryId=2&tenderMethod=01&tabName=%E6%8B%9B%E6%A0%87%E4%BF%A1%E6%81%AF&page=1" });
+await new Promise((r) => setTimeout(r, 20000));
+const r1 = await cdp("Runtime.evaluate", { expression: expr, returnByValue: true, awaitPromise: true });
+console.log("with awaitPromise:", JSON.stringify(r1.result).slice(0, 200));
+const r2 = await cdp("Runtime.evaluate", { expression: expr, returnByValue: true });
+console.log("without:", JSON.stringify(r2.result).slice(0, 200));
